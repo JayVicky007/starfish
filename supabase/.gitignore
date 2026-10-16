@@ -1,0 +1,4 @@
+NEXT_PUBLIC_SUPABASE_URL=https://supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mocksecretkey
+SUPABASE_SERVICE_ROLE_KEY=mock-service-role-key
+NEXT_PUBLIC_TMDB_API_KEY=mock-tmdb-key
