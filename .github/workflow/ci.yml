@@ -1,0 +1,31 @@
+name: Project Starfish Continuous Integration
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  verify-build:
+    name: Type-Check and Production Compile Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository Source Code
+        uses: actions/checkout@v4
+
+      - name: Initialize Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-node-version: 22
+          cache: "npm"
+
+      - name: Install Project Dependencies
+        run: npm ci
+
+      - name: Execute Strict TypeScript Type Validation
+        run: npx tsc --noEmit
+
+      - name: Verify Production Compilation Bundle Output
+        run: npm run build
