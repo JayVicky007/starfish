@@ -1,4 +1,5 @@
 # 🌟 Starfish Next.js SaaS Boilerplate
+[![Project Starfish CI](https://github.com/JayVicky007/starfish)]
 
 **Starfish** is a premium, multi-user, production-vetted Next.js 16 + Supabase + Tiptap Editorial SaaS boilerplate. It is engineered specifically as a commercial-grade launch template for digital distribution platforms like Lemon Squeezy, Stripe, and Gumroad, allowing you to bypass configuration fatigue and deploy enterprise-level content networks instantly.
 
