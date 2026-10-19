@@ -1,3 +1,6 @@
+// ==========================================================================
+// (Interactive Sector Matrix Grid)
+// ==========================================================================
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, BookOpen, MessageSquare, Terminal } from "lucide-react";
 import PostLikeButton from "@/components/PostLikeButton";
@@ -6,26 +9,12 @@ import { getPublishedPostsPage, type BlogPost } from "@/utils/blogService";
 const POSTS_PER_PAGE = 9;
 
 export const topicLabels: Record<string, string> = {
+  all: "All Systems",
   saas: "SaaS & Architecture",
   ai: "AI & Automation",
   devops: "DevOps & Infosec",
   design: "Design Systems",
 };
-
-function getPageLinks(currentPage: number, totalPages: number): Array<number | "ellipsis"> {
-  const pages = new Set([1, totalPages, currentPage - 1, currentPage, currentPage + 1]);
-  const visiblePages = [...pages]
-    .filter((page) => page >= 1 && page <= totalPages)
-    .sort((first, second) => first - second);
-
-  return visiblePages.flatMap((page, index) => {
-    const previousPage = visiblePages[index - 1];
-    return [
-      ...(previousPage && page - previousPage > 1 ? ["ellipsis" as const] : []),
-      page,
-    ];
-  });
-}
 
 function formatDate(value: string | null) {
   if (!value) return "";
@@ -33,12 +22,13 @@ function formatDate(value: string | null) {
 }
 
 interface BlogPageProps {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; topic?: string }>;
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const { page: pageParam } = await searchParams;
-  const requestedPage = Number.parseInt(pageParam ?? "1", 10);
+  const resolvedParams = await searchParams;
+  const activeTopic = resolvedParams.topic || "all";
+  const requestedPage = Number.parseInt(resolvedParams.page ?? "1", 10);
   const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
 
   let posts: BlogPost[] = [];
@@ -49,7 +39,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   let currentUserId: string | null = null;
 
   try {
-    const result = await getPublishedPostsPage(page, POSTS_PER_PAGE);
+    const result = await getPublishedPostsPage(page, POSTS_PER_PAGE, activeTopic);
     posts = result.posts;
     currentPage = result.currentPage;
     totalPages = result.totalPages;
@@ -58,6 +48,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   } catch (error) {
     errorMessage = error instanceof Error ? error.message : "Unable to load engineering publications.";
   }
+
   return (
     <main className="min-h-screen bg-background px-6 py-12 text-foreground sm:py-16">
       <header className="mx-auto max-w-7xl border-b border-text-muted/10 pb-8">
@@ -68,12 +59,28 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">Engineering & Strategy</h1>
         <p className="mt-3 max-w-2xl text-base text-text-muted">
           Deep dives into software architecture, automated workflows, secure infrastructures, and design mechanics.
-          {totalPosts > 0 && (
-            <span className="mt-2 block text-xs font-bold text-accent uppercase tracking-wider">
-              {totalPosts} active platform {totalPosts === 1 ? "publication" : "publications"}
-            </span>
-          )}
         </p>
+
+        {/* Premium Corporate Selection Badges Grid Layer */}
+        <nav aria-label="Topic Navigation System" className="mt-8 flex flex-wrap gap-2">
+          {Object.entries(topicLabels).map(([key, label]) => {
+            const isActive = activeTopic === key;
+            const queryUrl = key === "all" ? "/blog" : `/blog?topic=${key}`;
+            return (
+              <Link
+                key={key}
+                href={queryUrl}
+                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all border ${
+                  isActive
+                    ? "bg-accent border-accent text-slate-950 shadow-md shadow-accent/10"
+                    : "border-text-muted/15 bg-surface text-text-muted hover:border-accent/40 hover:text-accent"
+                }`}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
       </header>
 
       <section className="mx-auto mt-12 max-w-7xl">
@@ -141,17 +148,10 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           <nav aria-label="Pagination Control System" className="mt-12 flex items-center justify-between border-t border-text-muted/10 pt-6">
             <p className="text-xs font-semibold text-text-muted">Index View {currentPage} of {totalPages}</p>
             <div className="flex items-center gap-1.5">
-              <Link href={currentPage === 2 ? "/blog" : `/blog?page=${currentPage - 1}`} className={`inline-flex h-9 items-center gap-1 rounded-xl border border-text-muted/15 px-3 text-xs font-semibold transition-colors ${currentPage === 1 ? "pointer-events-none opacity-40" : "hover:bg-accent/10 hover:text-accent"}`}>
+              <Link href={currentPage === 2 ? `/blog${activeTopic !== "all" ? `?topic=\${activeTopic}` : ""}` : `/blog?page=${currentPage - 1}${activeTopic !== "all" ? `&topic=\${activeTopic}` : ""}`} className={`inline-flex h-9 items-center gap-1 rounded-xl border border-text-muted/15 px-3 text-xs font-semibold transition-colors ${currentPage === 1 ? "pointer-events-none opacity-40" : "hover:bg-accent/10 hover:text-accent"}`}>
                 <ChevronLeft className="h-3.5 w-3.5" /> Previous Matrix
               </Link>
-              {getPageLinks(currentPage, totalPages).map((pageLink, idx) => pageLink === "ellipsis" ? (
-                <span key={`ellipsis-${idx}`} className="px-1 text-text-muted text-xs">…</span>
-              ) : (
-                <Link key={pageLink} href={pageLink === 1 ? "/blog" : `/blog?page=${pageLink}`} className={`flex h-9 min-w-9 items-center justify-center rounded-xl border text-xs font-bold transition-colors ${pageLink === currentPage ? "border-accent bg-accent text-slate-950" : "border-text-muted/15 hover:border-accent"}`}>
-                  {pageLink}
-                </Link>
-              ))}
-              <Link href={`/blog?page=${currentPage + 1}`} className={`inline-flex h-9 items-center gap-1 rounded-xl border border-text-muted/15 px-3 text-xs font-semibold transition-colors ${currentPage === totalPages ? "pointer-events-none opacity-40" : "hover:bg-accent/10 hover:text-accent"}`}>
+              <Link href={`/blog?page=${currentPage + 1}${activeTopic !== "all" ? `&topic=\${activeTopic}` : ""}`} className={`inline-flex h-9 items-center gap-1 rounded-xl border border-text-muted/15 px-3 text-xs font-semibold transition-colors ${currentPage === totalPages ? "pointer-events-none opacity-40" : "hover:bg-accent/10 hover:text-accent"}`}>
                 Next Cluster <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </div>
