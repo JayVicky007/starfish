@@ -13,8 +13,8 @@ export async function updateSession(request: NextRequest) {
 
   // 🚀 ENVIRONMENT GUARD: Drop in dummy variables if local keys are unlinked
   if (!supabaseUrl || !supabaseKey) {
-    supabaseUrl = "https://supabase.co";
-    supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mocksecretkey";
+    supabaseUrl = "https://smgxxpkxyezripjpfnbv.supabase.co/";
+    supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtZ3h4cGt4eWV6cmlwanBmbmJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0ODYxNDIsImV4cCI6MjEwODA2MjE0Mn0.JZXoPkpMBEjOqS_PAG0iwXi8-d0JFQvCeqzG5X_vFjc";
   }
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {

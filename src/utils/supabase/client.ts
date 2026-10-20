@@ -19,8 +19,8 @@ export function createClient() {
 
   // 🚀 HARDEN BUILD CONTROLLER against missing or unlinked system variables
   if (!supabaseUrl || !supabaseKey) {
-    const fallbackUrl = "https://supabase.co";
-    const fallbackKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mocksecretkey";
+    const fallbackUrl = "https://smgxxpkxyezripjpfnbv.supabase.co/";
+    const fallbackKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtZ3h4cGt4eWV6cmlwanBmbmJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0ODYxNDIsImV4cCI6MjEwODA2MjE0Mn0.JZXoPkpMBEjOqS_PAG0iwXi8-d0JFQvCeqzG5X_vFjc";
     return createBrowserClient(fallbackUrl, fallbackKey);
   }
 
