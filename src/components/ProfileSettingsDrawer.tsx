@@ -32,7 +32,7 @@ export default function ProfileSettingsDrawer({ userId, email, profile }: Profil
               Account Preferences
             </span>
             <span className="text-xs font-normal text-text-muted">
-              {isOpen ? "Close profile management canvas" : "Update your name, username, or bio"}
+              {isOpen ? "Close profile management canvas" : "Update your display name or bio"}
             </span>
           </div>
         </div>
@@ -47,7 +47,7 @@ export default function ProfileSettingsDrawer({ userId, email, profile }: Profil
           <ProfileForm 
             userId={userId}
             email={email}
-            initialUsername={profile?.username ?? ""}
+            username={profile?.username ?? ""}
             initialDisplayName={profile?.display_name ?? ""}
             initialBio={profile?.bio ?? ""}
           />

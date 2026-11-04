@@ -1,27 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { ChevronDown, Search, User, PenSquare, LogOut, Menu, X, Sun, Moon } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ChevronDown, Search, User, PenSquare, LogOut, Menu, X, Moon } from "lucide-react";
 
-// ==========================================
-// 🍿 MOCK DATABASE DATA FROM ORIGINAL SNIPPET
-// ==========================================
-const mockSearchResults = [
-  { id: 27205, title: "Inception", poster_path: "/9gk7adHY9CjST6Y29X9wZg2R7Y8.jpg", release_date: "2010-07-15", vote_average: 8.4 },
-  { id: 157336, title: "Interstellar", poster_path: "/gEU2QniE6E77NIvHGvPbgDcwtgC.jpg", release_date: "2014-11-05", vote_average: 8.4 },
-  { id: 11324, title: "Shutter Island", poster_path: "/kve20wIIgZzb68g1g4jZOCjIY9g.jpg", release_date: "2010-02-14", vote_average: 8.2 },
-  { id: 49051, title: "The Hobbit", poster_path: "/b8568Y7Du6bM666g67v6u6gB.jpg", release_date: "2012-11-26", vote_average: 7.7 },
-  { id: 120, title: "The Lord of the Rings", poster_path: "/6oom6Q72z6r7J6Bw67v6U6gB.jpg", release_date: "2001-12-18", vote_average: 8.4 },
-];
-
-const mockSuggestions = [
-  { id: 27205, title: "Inception (2010)", mediaType: "Movie", rawMediaType: "movie", posterPath: "/9gk7adHY9CjST6Y29X9wZg2R7Y8.jpg" },
-  { id: 1399, title: "Game of Thrones (2011)", mediaType: "TV Series", rawMediaType: "tv", posterPath: "/1xsYj8477DDZZ6gB.jpg" },
-];
-
-const movieCategories = ["Hollywood", "British Cinema", "European Cinema", "East Asian Cinema"];
-const seriesCategories = ["American Series", "British Series", "European Series", "East Asian Series"];
+const topicCategories = ["Guides", "Product updates", "Engineering", "Community"];
 
 // ==========================================
 // 🛠️ TOUCH-SAFE DROP-DOWN MENU COMPONENT
@@ -102,8 +84,7 @@ export default function SandboxPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Standalone simulated login variables
-  const userEmail = "cinephile@filmshift.com";
-  const username = "MovieMaster2026";
+  const username = "SampleWriter";
   const accountInitial = "M";
 
   return (
@@ -127,20 +108,16 @@ export default function SandboxPage() {
             {/* Branding Logo */}
             <div className="flex items-center gap-6">
               <span className="text-xl font-black tracking-tight text-white select-none">
-                Film<span className="text-amber-400">Shift</span> <span className="text-[10px] text-zinc-500 font-mono tracking-normal border border-zinc-700 px-1 rounded ml-1">TEST</span>
+                Star<span className="text-amber-400">fish</span> <span className="text-[10px] text-zinc-500 font-mono tracking-normal border border-zinc-700 px-1 rounded ml-1">TEST</span>
               </span>
 
               {/* Desktop Nav Items */}
               <nav className="hidden md:flex items-center gap-5 text-sm font-semibold text-zinc-400">
                 <div className="flex items-center gap-1">
-                  <span className="hover:text-amber-400 transition-colors cursor-pointer">Movies</span>
-                  <SandboxCategoryMenu label="" menuId="desk-movie" categories={movieCategories} />
+                  <span className="hover:text-amber-400 transition-colors cursor-pointer">Topics</span>
+                  <SandboxCategoryMenu label="" menuId="desk-topics" categories={topicCategories} />
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className="hover:text-amber-400 transition-colors cursor-pointer">TV Series</span>
-                  <SandboxCategoryMenu label="" menuId="desk-tv" categories={seriesCategories} />
-                </div>
-                <span className="hover:text-amber-400 transition-colors cursor-pointer">The Journal</span>
+                <span className="hover:text-amber-400 transition-colors cursor-pointer">Articles</span>
               </nav>
             </div>
 
@@ -154,7 +131,7 @@ export default function SandboxPage() {
                     type="search"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search titles..."
+                    placeholder="Search articles..."
                     className="w-28 rounded-full border border-zinc-700 bg-zinc-950 py-1.5 px-3 text-xs text-white focus:outline-none focus:ring-2 focus:ring-amber-400/80 sm:w-36"
                   />
                 )}
@@ -210,24 +187,16 @@ export default function SandboxPage() {
               <nav className="flex flex-col p-4 gap-2 font-semibold text-zinc-200">
                 {/* ... keeping all your interior menu routes intact ... */}
               
-              {/* Mobile Movie Section */}
+              {/* Mobile Topic Section */}
               <div className="border-b border-zinc-800 pb-2">
                 <div className="flex items-center justify-between py-1.5">
-                  <span className="text-sm text-amber-400 cursor-pointer" onClick={() => alert("Index trigger")}>Movies Index →</span>
-                  <SandboxCategoryMenu label="Browse Genres" menuId="mob-movie-cats" categories={movieCategories} />
-                </div>
-              </div>
-
-              {/* Mobile Series Section - FIXED & RESTORED */}
-              <div className="border-b border-zinc-800 pb-2">
-                <div className="flex items-center justify-between py-1.5">
-                  <span className="text-sm text-amber-400 cursor-pointer" onClick={() => alert("Index trigger")}>TV Series Index →</span>
-                  <SandboxCategoryMenu label="Browse Genres" menuId="mob-series-cats" categories={seriesCategories} />
+                  <span className="text-sm text-amber-400 cursor-pointer" onClick={() => alert("Topics selected")}>Browse topics →</span>
+                  <SandboxCategoryMenu label="Topics" menuId="mob-topics" categories={topicCategories} />
                 </div>
               </div>
 
               <span className="py-2.5 border-b border-zinc-800 text-sm hover:text-amber-400 cursor-pointer">
-                The Journal
+                Articles
               </span>
 
               {/* Mobile Simulated Dashboard Slate */}

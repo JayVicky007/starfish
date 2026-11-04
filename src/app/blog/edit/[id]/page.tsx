@@ -18,19 +18,21 @@ export default async function EditPostPage({
     redirect("/login");
   }
 
-  // 2. Fetch the specific post to edit
-  const { data: post } = await supabase
+  // 2. Fetch only a post owned by the signed-in user.
+  const { data: post, error } = await supabase
     .from("posts")
-    .select("id, author_id, title, excerpt, cover_image_url, body, content_type, media_type, tmdb_id, status, slug, updated_at")
+    .select("id, title, excerpt, cover_image_url, body, content_type, category, status, slug")
     .eq("id", id)
+    .eq("author_id", user.id)
     .single();
 
-  // 3. If post doesn't exist, or it doesn't belong to the logged-in user, throw a 404
-  if (!post || post.author_id !== user.id) {
+  if (error?.code === "PGRST116") {
     notFound();
   }
+  if (error) {
+    throw new Error(`Unable to load draft for editing: ${error.message}`);
+  }
 
-  // 4. Safely render the workspace structure
   return (
     <main className="min-h-screen bg-background px-6 py-12 text-foreground sm:py-16">
       <section className="mx-auto w-full max-w-3xl rounded-3xl border border-text-muted/15 bg-surface p-6 shadow-[0_20px_60px_rgba(0,0,0,0.12)] sm:p-8">
@@ -48,10 +50,7 @@ export default async function EditPostPage({
         
         <WritePostForm 
           authorId={user.id} 
-          initialPost={{
-            ...post,
-            content_type: post.content_type as "review" | "article"
-          }} 
+          initialPost={post}
         />
       </section>
     </main>

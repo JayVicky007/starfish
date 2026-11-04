@@ -10,19 +10,19 @@ const adminSections = [
   {
     href: "/admin/posts",
     title: "Manage posts",
-    description: "Review published posts and drafts, and remove content that should no longer be on FilmShift.",
+    description: "Review published posts and drafts, and remove content that violates your community guidelines.",
     action: "Manage posts",
   },
   {
     href: "/admin/corrections",
     title: "Post metadata corrections",
-    description: "Correct a post’s media type or linked TMDB title, with an audit trail and author notification.",
+    description: "Correct a post's category or external reference and notify its author.",
     action: "Open corrections",
   },
   {
     href: "/admin/pins",
-    title: "Pinned Journal posts",
-    description: "Choose which published posts appear first on The Journal.",
+    title: "Pinned articles",
+    description: "Choose which published articles appear first in the publication.",
     action: "Manage pinned posts",
   },
   {

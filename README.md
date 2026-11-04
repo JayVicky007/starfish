@@ -1,157 +1,119 @@
-# 🌟 Starfish Next.js SaaS Boilerplate
+# Starfish Editorial Starter
 
-![Project StarFish CI](https://github.com/JayVicky007/starfish/actions/workflows/ci.yml/badge.svg)
+Starfish is a downloadable starter project for developers who want to build on
+an example editorial application. It uses Next.js, Supabase, and Tiptap. The
+repository includes working application features, but it is a starting point,
+not a certified or production-vetted service.
 
-**Starfish** is a premium, multi-user, production-vetted Next.js 16 + Supabase + Tiptap Editorial SaaS boilerplate. It is engineered specifically as a commercial-grade launch template for digital distribution platforms like Lemon Squeezy, Stripe, and Gumroad, allowing you to bypass configuration fatigue and deploy enterprise-level content networks instantly.
+## Included
 
----
+- Email and password sign-up, sign-in, and Supabase session handling.
+- User profiles with unique, permanent usernames, editable display names, and
+  avatar and cover image uploads.
+- A Tiptap editor with draft autosave, draft editing, and publishing.
+- Public article pages, comments, replies, likes, and mention notifications.
+- Admin pages for moderation, account management, and audited post-category
+  corrections.
+- Supabase migrations for the application schema, access policies, and storage
+  buckets.
 
-## 🚀 Key Platform Capabilities
+Access policies are present in the migrations, but every buyer should review
+and test them against their own requirements before launch.
 
-### ⚡ Professional Editorial Engine
+## Not included
 
-- **Tailored Tiptap Framework:** A custom rich-text canvas equipped with asynchronous background auto-save tracking indicators, text alignment nodes, inline formatting, and custom case transformation macros (uppercase, capitalize, lowercase).
-- **Advanced Asset Processing:** Integrated image injection utility with automatic boundary enforcement restricted to a strict 5MB platform size limit control.
-- **Dynamic Content Lifecycle:** Separate organizational workspaces for managing public live deployments and private creator drafts natively.
+- In-app billing or payment processing. Deployers must integrate and operate
+  their own provider account if their product needs billing.
+- Team organizations, invitations, or multi-tenant workspaces.
+- A warranty, compliance certification, or guarantee that the application is
+  production-ready without additional review and testing.
 
-### 🔐 Hardened Security & Multi-User Architecture
+## Requirements
 
-- **Supabase RLS Protection:** Hardened Row Level Security (RLS) database policies protecting profiles, posts, comments pipelines, and attachment assets.
-- **Audited Administration Overrides:** Administrative trace panels allowing global topic modifications (`saas`, `ai`, `devops`, `design`) with real-time audit tracing logs and automated author notifications.
-- **Ecosystem Moderation:** Interactive reporting queues for comment violation traces, account isolation/ban configurations, and absolute post-deletion cascades.
+- Node.js 22 or later.
+- npm.
+- A Supabase project.
 
-### 🌐 Enterprise-Grade Core Stack
+## Local setup
 
-- **Next.js 16 App Router & React 19:** Clean server components layouts optimized for structural server-side rendering performance.
-- **Tailwind CSS v4:** Modern layout compilation leveraging high-performance utility class chains.
-- **Resilient Dev Pipelines:** Client factory environment fallbacks unblocking local `npm run dev` and `npm run build` routines natively without needing functional production database credentials.
+1. Install dependencies:
 
----
+   ```bash
+   npm ci
+   ```
 
-## 🛠️ The Technical Stack
+2. Create `.env.local` in the repository root:
 
-| Technology Layer  | Vetted Framework Version | Purpose within Starfish Ecosystem                                              |
-| :---------------- | :----------------------- | :----------------------------------------------------------------------------- |
-| **Next.js**       | `v16.3.4` (App Router)   | Server component structure, data optimization, and API route layers            |
-| **React**         | `v19.2.8`                | Concurrent UI compilation, lifecycle rendering loops, and forms state          |
-| **Supabase SSR**  | `@supabase/ssr`          | Hardened session middleware, auth cookies management, and secure RLS           |
-| **Tiptap Core**   | `v3.31.3`                | Custom WYSIWYG editor canvas, selection mapping, and handle plugins            |
-| **Tailwind CSS**  | `v4`                     | High-conversion typography, layout variables, and multi-tier component styling |
-| **Sanitize-HTML** | `v2.18.0`                | Server-side rich-text injection protection and alignment tracing schemas       |
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
 
-## ⚙️ Core Configuration & Environment Mapping
+   # Optional: required only for server-side admin operations.
+   # Never expose this key in browser code or commit it to source control.
+   SUPABASE_SERVICE_ROLE_KEY=your-server-only-service-role-key
+   ```
 
-Create a `.env.local` file inside your project root to align your local variables. Replace the placeholders below with your actual project keys from your dashboard provider.
+   `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be used instead of
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY`. These two public-key variables are not
+   secrets; the service-role key is.
 
-```env
-# Supabase Secure Access Client Nodes (Safe for Browser Bundle Exposure)
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_actual_public_anon_key_here
+3. Configure the Supabase Auth site URL and redirect allowlist for your local
+   URL, including `http://localhost:3000/auth/callback`.
 
-# Server-Side Operational Access (CRITICAL: Keep Secure - Never expose to Client)
-SUPABASE_SERVICE_ROLE_KEY=your_secret_admin_service_role_key_here
+4. To apply migrations to a **new, empty Supabase project**, log in and link the
+   project:
 
-# Monetization Webhook Routing Validation Keys (Server-Only Runtime)
-LEMON_SQUEEZY_WEBHOOK_SECRET=your_webhook_verification_secret_here
-```
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref YOUR_PROJECT_REFERENCE_ID
+   npx supabase db push --linked --dry-run
+   ```
 
----
+   Review the pending migration list and confirm the linked project is correct
+   before applying:
 
-## 🏎️ Getting Started Locally
+   ```bash
+   npx supabase db push --linked
+   ```
 
-Follow this systematic setup process to initialize the local creator workspace.
+   **Do not push this migration history blindly to an existing populated
+   project.** First compare its schema and migration history with
+   `supabase/migrations`; reconcile the baseline safely and back up important
+   data before applying changes.
 
-### 1. Provision Code Dependencies
+5. Start the development server:
 
-Install your node modules using clean npm installation tracking locks:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-npm ci
-```
+   Open [http://localhost:3000](http://localhost:3000).
 
-### 2. Configure Local Database Schema
-
-Database configurations are managed via versioned migration traces in `supabase/migrations`. Spin up your local stack, authenticate your Supabase CLI node, and execute the migration pipeline:
-
-```bash
-# Log in to your remote account node
-npx supabase login
-
-# Link your local working tree directory to your active project ref
-npx supabase link --project-ref YOUR_PROJECT_REFERENCE_ID
-
-# Deploy schema, index definitions, and rate-limit triggers live
-npx supabase db push
-```
-
-### 3. Initialize the Development Engine
-
-Launch the dynamic compilation loop layer:
-
-```bash
-npm run dev
-```
-
-Open **[http://localhost:3000](http://localhost:3000)** to view the live local workspace.
-
----
-
-## 🔍 Directory Grid Topography
-
-```text
-.github/
-  workflows/    -> Project Starfish Continuous Integration action runners
-src/
-  app/          -> Next.js 16 App Router pages, layouts, and system nodes
-    admin/      -> Administrative taxonomies and audit trail traces
-    api/        -> Server action paths and backend webhook vectors
-    blog/       -> Reading canvases and paginated article layouts
-  components/   -> Vetted UI modules, rich text editors, and theme providers
-  types/        -> Type footprint casting blueprints
-  utils/        -> Supabase factories, HTML sanitizers, and blog controllers
-supabase/
-  migrations/   -> Idempotent SQL setups, RLS definitions, and triggers
-```
-
----
-
-## 🚀 Production Deployment Pipeline
-
-Project Starfish uses server-rendered layout components and dynamic Supabase state sync hooks. Deploy your repository into a production node designed for standard Next.js workloads (e.g., Vercel, AWS Amplify, or a standalone Node.js server container).
-
-### Build and Compilation Routines
-
-Always verify compilation baselines before pushing live configurations to production:
+## Checks
 
 ```bash
-# Verify strict TypeScript footprint contracts across all modules
-npm run type-check
-
-# Compile production bundle output chunks
+npx tsc --noEmit
 npm run build
-
-# Boot local production web server container node
-npm run start
+npm run lint
 ```
 
----
+CI currently runs TypeScript validation and a production build. Automated
+end-to-end authorization and upload tests are not yet included.
 
-## 🧪 Quality Assurance & CI Workflow Ledger
+## Before deploying your customized app
 
-The application repository is configured with a strict automated continuous integration workflow pipeline mapped via GitHub Actions. On every code push or branch merge request to `main`:
+- Replace Starfish/sample copy, categories, links, and other branding.
+- Review every Supabase migration, RLS policy, storage policy, and admin
+  operation; test access with separate accounts.
+- Set Auth redirect URLs for your deployed domain.
+- Store server-only keys in your hosting provider's secret environment
+  settings, not in client variables or source control.
+- Run the app's build and relevant manual/automated tests against your own
+  Supabase project.
+- Add your own privacy, terms, support, backup, monitoring, and billing
+  integrations as required by your product.
 
-- A clean virtual test node boots an isolated instance container.
-- Node.js dependencies map directly out of the `package-lock.json` trace matrix.
-- `npx tsc --noEmit` checks and verifies total project type-safety footprints.
-- `npm run build` executes to guarantee 100% production compilation readiness before deploy gates trip open.
+## License
 
----
-
-## 📈 Commercial Distribution Permissions
-
-This boilerplate is packed commercially for individual creator deployment paths and unlimited multi-tier software agency product white-labeling:
-
-- **Developer License:** Entitles a single developer to infinite production product runtime configurations.
-- **Commercial Agency License:** Grants multi-user distribution permissions, custom theme bundling, and complete redistribution code access hooks across external client projects natively.
-
-_Disclaimer: Framework versions match Next.js 16 + React 19 core dependencies configurations. Multi-user row-level data boundaries are initialized and locked._
+The repository does not currently define a distribution license. Confirm and
+include the intended license before selling or redistributing the template.

@@ -18,7 +18,7 @@ function formatCommentDate(value: string) {
 }
 
 function getAuthorName(comment: BlogComment) {
-  return comment.author?.display_name || comment.author?.username || "FilmShift member";
+  return comment.author?.display_name || comment.author?.username || "Community member";
 }
 
 function renderCommentBody(body: string, mentionUsernames: string[]) {

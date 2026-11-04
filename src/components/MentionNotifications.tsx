@@ -9,7 +9,7 @@ import type { BlogComment } from "@/utils/blogService";
 export type MentionNotification = {
   id: string;
   comment_id: string | null;
-  type: "comment_mention" | "comment_reply" | "admin_post_correction";
+  type: "comment_mention" | "comment_reply" | "admin_post_correction" | "post_category_correction";
   message: string | null;
   created_at: string;
   read_at: string | null;
@@ -59,16 +59,17 @@ export default function MentionNotifications({
         : item),
     );
     setUpdatingId(null);
-    window.dispatchEvent(new Event("filmshift-notifications-updated"));
+    window.dispatchEvent(new Event("starfish-notifications-updated"));
     return true;
   }
 
   async function openNotification(notification: MentionNotification) {
     if (notification.read_at || await markAsRead(notification.id)) {
       if (notification.post) {
-        router.push(notification.type === "admin_post_correction" && notification.post.status === "draft"
+        const isCorrection = notification.type === "admin_post_correction" || notification.type === "post_category_correction";
+        router.push(isCorrection && notification.post.status === "draft"
           ? `/blog/edit/${notification.post.id}`
-          : notification.type === "admin_post_correction"
+          : isCorrection
             ? `/blog/${notification.post.slug}`
             : `/blog/${notification.post.slug}#comment-${notification.comment_id}`);
       }
@@ -87,7 +88,7 @@ export default function MentionNotifications({
           You don&apos;t have any notifications yet.
         </p>
       ) : notifications.map((notification) => {
-        const actorName = notification.actor?.display_name || notification.actor?.username || "A FilmShift member";
+        const actorName = notification.actor?.display_name || notification.actor?.username || "A community member";
         return (
           <article
             key={notification.id}
@@ -99,9 +100,9 @@ export default function MentionNotifications({
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                {notification.type === "admin_post_correction" ? (
+                {notification.type === "admin_post_correction" || notification.type === "post_category_correction" ? (
                   <p className="text-sm">
-                    An administrator corrected the metadata on{" "}
+                    An administrator changed the category on{" "}
                     {notification.post ? (
                       <Link
                         href={notification.post.status === "draft"
@@ -152,7 +153,7 @@ export default function MentionNotifications({
                       {notification.post.title}
                     </Link>
                   ) : (
-                    <span className="font-semibold">a Journal post</span>
+                    <span className="font-semibold">an article</span>
                   )}
                 </p>
                 )}
