@@ -61,25 +61,29 @@ and test them against their own requirements before launch.
    URL, including `http://localhost:3000/auth/callback`.
 
 4. To apply migrations to a **new, empty Supabase project**, log in and link the
-   project:
+   project. With the current Supabase CLI, database commands target the local
+   stack by default; use `--remote` to target the linked hosted project:
 
    ```bash
    npx supabase login
    npx supabase link --project-ref YOUR_PROJECT_REFERENCE_ID
-   npx supabase db push --linked --dry-run
+   npx supabase migration list --remote
+   npx supabase db push --remote --dry-run
    ```
 
-   Review the pending migration list and confirm the linked project is correct
-   before applying:
+   Review migration status and the dry-run output. Confirm the linked project is
+   the intended one before applying:
 
    ```bash
-   npx supabase db push --linked
+   npx supabase db push --remote
    ```
 
    **Do not push this migration history blindly to an existing populated
    project.** First compare its schema and migration history with
    `supabase/migrations`; reconcile the baseline safely and back up important
-   data before applying changes.
+   data before applying changes. In particular, the username migration will
+   stop if existing usernames collide when compared without regard to case or
+   surrounding whitespace; resolve those duplicates before applying it.
 
 5. Start the development server:
 
