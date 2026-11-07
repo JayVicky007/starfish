@@ -101,7 +101,9 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                 <article key={post.id} className="group relative flex flex-col justify-between rounded-2xl border border-text-muted/15 bg-surface p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-md">
                   <div>
                     {post.cover_image_url && (
-                      <img src={post.cover_image_url} alt="" className="-mx-6 -mt-6 mb-5 aspect-video w-[calc(100%+3rem)] rounded-t-2xl object-cover" />
+                      <div className="-mx-6 -mt-6 mb-5 overflow-hidden rounded-t-2xl">
+                        <img src={post.cover_image_url} alt="" className="block aspect-video w-full object-cover" />
+                      </div>
                     )}
                     <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-accent">
                       <span className="flex items-center gap-1.5 font-bold">

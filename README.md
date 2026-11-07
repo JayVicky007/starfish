@@ -101,8 +101,23 @@ npm run build
 npm run lint
 ```
 
-CI currently runs TypeScript validation and a production build. Automated
-end-to-end authorization and upload tests are not yet included.
+The database tests use pgTAP and a disposable local Supabase stack. Install and
+start Docker Desktop, then run:
+
+```bash
+npx supabase start
+npx supabase db reset
+npx supabase test db
+npx supabase stop
+```
+
+`db reset` deletes and rebuilds the **local** Supabase database from the
+repository migrations and seed file. Do not run it against a remote project.
+These tests exercise the signup profile trigger, username uniqueness and
+immutability, and owner/admin access to drafts and category corrections. They
+run only against the local Supabase stack; do not use `--remote` for tests.
+GitHub Actions runs the database tests alongside TypeScript validation and the
+production build. Browser-level signup and upload tests are not yet included.
 
 ## Before deploying your customized app
 

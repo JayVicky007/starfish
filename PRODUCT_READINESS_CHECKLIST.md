@@ -42,7 +42,7 @@ a deployed staging environment.
 | Supabase access control | Partial | RLS policies and storage ownership policies exist in migrations, and two-account checks were reported as passing. Confirm the live database matches migrations and automate cross-account tests. |
 | Billing integration | Optional / missing | No checkout, signed billing webhook, subscription state, or entitlements exist. These are not required for the initial template; if later included, deployments should bring their own provider accounts and secrets. |
 | Team organizations | Out of initial scope | No organization membership or invitation system was found. Avoid implying multi-tenant/team support unless a future scope explicitly includes it. |
-| Automated product/security tests | Missing | No tracked application test suite was found. CI currently checks TypeScript and builds; it does not exercise auth, RLS, uploads, or billing. |
+| Automated product/security tests | Partial | pgTAP tests now cover the signup profile trigger, username uniqueness/immutability, and owner/admin access to drafts and category corrections; CI runs these against a clean local Supabase stack. Browser-level signup and upload tests, and wider access-control coverage, remain. |
 | Setup and deployment guidance | Partial | README provides basic Supabase setup, but clean-project migration instructions and a tested staging/deployment walkthrough remain to be verified. |
 | Product claims and licensing | Partial | README and homepage no longer claim billing, production certification, enterprise/team support, or rights that are not established. The distribution license and marketplace listing requirements remain undecided. |
 
@@ -83,7 +83,10 @@ is out of scope.
   against the intended access matrix.
 - [ ] Test anonymous, owner, and second-account access for profiles, drafts,
   published posts, comments, notifications, and uploaded files.
-- [ ] Add automated tests for the critical authorization cases.
+- [x] Add automated database tests for signup profile creation, username
+  uniqueness/immutability, and owner/admin draft and category-correction access.
+- [ ] Extend automated authorization coverage to profiles, comments,
+  notifications, and uploaded files; add browser-level signup and upload tests.
 
 **Done when:** the template is domain-neutral, and a fresh account can only
 manage its own private content and assets while public content is exposed
@@ -114,7 +117,8 @@ does not rely on manual database edits or undocumented provider settings.
   path that works for a buyer who has never used this repository.
 - [ ] Include a demo/reset path or sample content strategy that does not ship
   real secrets or depend on the author's live Supabase project.
-- [ ] Add automated tests to CI alongside type-check and production build.
+- [x] Add automated database tests to CI alongside type-check and production
+  build.
 - [ ] Resolve or explicitly track existing full-project lint errors.
 - [ ] Deploy a staging instance and test signup, email confirmation, sessions,
   uploads, authorization, and error handling there. Billing tests are only
