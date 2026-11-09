@@ -2,7 +2,7 @@ create extension if not exists pgtap with schema extensions;
 
 begin;
 
-select plan(20);
+select plan(22);
 
 insert into auth.users (
   id,
@@ -152,6 +152,38 @@ select throws_ok(
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
+
+select lives_ok(
+  $$
+    update public.profiles
+    set display_name = 'Owner One Updated',
+        bio = 'Updated profile bio',
+        avatar_url = 'https://example.test/owner-one-avatar.png',
+        cover_image_url = 'https://example.test/owner-one-cover.png'
+    where id = '10000000-0000-0000-0000-000000000001'
+  $$,
+  'an owner can update editable profile and image fields'
+);
+
+select is(
+  (
+    select jsonb_build_object(
+      'display_name', display_name,
+      'bio', bio,
+      'avatar_url', avatar_url,
+      'cover_image_url', cover_image_url
+    )
+    from public.profiles
+    where id = '10000000-0000-0000-0000-000000000001'
+  ),
+  jsonb_build_object(
+    'display_name', 'Owner One Updated',
+    'bio', 'Updated profile bio',
+    'avatar_url', 'https://example.test/owner-one-avatar.png',
+    'cover_image_url', 'https://example.test/owner-one-cover.png'
+  ),
+  'the owner profile changes persist'
+);
 
 select is(
   (select count(*)::integer from public.posts where id = '20000000-0000-0000-0000-000000000001'),
