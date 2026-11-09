@@ -39,10 +39,10 @@ a deployed staging environment.
 | Public publications | Implemented | Blog listing and individual post routes exist, with topic filtering and published content. |
 | Comments and engagement | Implemented | Comments, replies, likes, reports, mentions, and notifications have application code and migrations. |
 | Admin and moderation | Partial | Admin pages and user management/moderation actions exist. Category changes now have a durable audit log and author notification; other consequential admin actions still need audit coverage. |
-| Supabase access control | Partial | RLS policies and storage ownership policies exist in migrations, and two-account checks were reported as passing. Confirm the live database matches migrations and automate cross-account tests. |
+| Supabase access control | Partial | RLS policies and storage ownership policies exist in migrations. pgTAP now covers anonymous/profile/comment visibility, owner and cross-account profile/comment behavior, notification privacy, private drafts, and storage upload ownership/listing; verify the latest migration on staging and continue broader lifecycle checks. |
 | Billing integration | Optional / missing | No checkout, signed billing webhook, subscription state, or entitlements exist. These are not required for the initial template; if later included, deployments should bring their own provider accounts and secrets. |
 | Team organizations | Out of initial scope | No organization membership or invitation system was found. Avoid implying multi-tenant/team support unless a future scope explicitly includes it. |
-| Automated product/security tests | Partial | pgTAP tests now cover the signup profile trigger, username uniqueness/immutability, and owner/admin access to drafts and category corrections; CI runs these against a clean local Supabase stack. Browser-level signup and upload tests, and wider access-control coverage, remain. |
+| Automated product/security tests | Partial | pgTAP covers signup, username guarantees, profile/comment/notification access, draft/category authorization, and storage ownership/listing against a clean local Supabase stack in CI. Browser-level signup and upload tests and broader moderation/lifecycle coverage remain. |
 | Setup and deployment guidance | Partial | README provides basic Supabase setup, but clean-project migration instructions and a tested staging/deployment walkthrough remain to be verified. |
 | Product claims and licensing | Partial | README and homepage no longer claim billing, production certification, enterprise/team support, or rights that are not established. The distribution license and marketplace listing requirements remain undecided. |
 
@@ -85,8 +85,9 @@ is out of scope.
   published posts, comments, notifications, and uploaded files.
 - [x] Add automated database tests for signup profile creation, username
   uniqueness/immutability, and owner/admin draft and category-correction access.
-- [ ] Extend automated authorization coverage to profiles, comments,
-  notifications, and uploaded files; add browser-level signup and upload tests.
+- [x] Extend pgTAP authorization coverage to profiles, comments, notifications,
+  and storage ownership/listing.
+- [ ] Add browser-level signup and upload tests.
 
 **Done when:** the template is domain-neutral, and a fresh account can only
 manage its own private content and assets while public content is exposed
