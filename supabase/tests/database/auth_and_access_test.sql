@@ -2,7 +2,7 @@ create extension if not exists pgtap with schema extensions;
 
 begin;
 
-select plan(22);
+select plan(59);
 
 insert into auth.users (
   id,
@@ -104,6 +104,27 @@ values (
   'Seed audit entry for access tests'
 );
 
+insert into public.comments (id, post_id, author_id, body)
+values
+  (
+    '40000000-0000-0000-0000-000000000001',
+    '20000000-0000-0000-0000-000000000003',
+    '10000000-0000-0000-0000-000000000002',
+    'A public comment by owner two'
+  ),
+  (
+    '40000000-0000-0000-0000-000000000002',
+    '20000000-0000-0000-0000-000000000003',
+    '10000000-0000-0000-0000-000000000001',
+    'An editable comment by owner one'
+  ),
+  (
+    '40000000-0000-0000-0000-000000000003',
+    '20000000-0000-0000-0000-000000000002',
+    '10000000-0000-0000-0000-000000000002',
+    'A comment on a private draft'
+  );
+
 select is(
   (select username from public.profiles where id = '10000000-0000-0000-0000-000000000001'),
   'owner_one',
@@ -186,6 +207,32 @@ select is(
 );
 
 select is(
+  (select count(*)::integer from public.profiles where id = '10000000-0000-0000-0000-000000000002'),
+  1,
+  'an authenticated user can read another public profile'
+);
+
+select lives_ok(
+  $$
+    update public.profiles
+    set display_name = 'Unauthorized profile edit'
+    where id = '10000000-0000-0000-0000-000000000002'
+  $$,
+  'an authenticated user cannot update another profile'
+);
+
+reset role;
+
+select is(
+  (select display_name from public.profiles where id = '10000000-0000-0000-0000-000000000002'),
+  'Owner Two',
+  'a cross-account profile update leaves the profile unchanged'
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
+
+select is(
   (select count(*)::integer from public.posts where id = '20000000-0000-0000-0000-000000000001'),
   1,
   'an owner can read their own draft'
@@ -238,6 +285,169 @@ select is(
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
 
+select lives_ok(
+  $$
+    insert into public.comments (post_id, author_id, body)
+    values (
+      '20000000-0000-0000-0000-000000000003',
+      '10000000-0000-0000-0000-000000000001',
+      'A new comment on a published post'
+    )
+  $$,
+  'an authenticated user can comment on a published post'
+);
+
+select throws_ok(
+  $$
+    insert into public.comments (post_id, author_id, body)
+    values (
+      '20000000-0000-0000-0000-000000000002',
+      '10000000-0000-0000-0000-000000000001',
+      'A comment on another account’s draft'
+    )
+  $$,
+  '42501',
+  null,
+  'a user cannot comment on a private draft'
+);
+
+select lives_ok(
+  $$
+    update public.comments
+    set body = 'Owner one edited their comment'
+    where id = '40000000-0000-0000-0000-000000000002'
+  $$,
+  'a user can edit their own comment'
+);
+
+select lives_ok(
+  $$
+    update public.comments
+    set body = 'Unauthorized comment edit'
+    where id = '40000000-0000-0000-0000-000000000001'
+  $$,
+  'a user cannot edit another user’s comment'
+);
+
+select lives_ok(
+  $$
+    insert into storage.objects (bucket_id, name, owner, owner_id)
+    values (
+      'avatars',
+      '10000000-0000-0000-0000-000000000001/owner-one-test.png',
+      '10000000-0000-0000-0000-000000000001',
+      '10000000-0000-0000-0000-000000000001'
+    )
+  $$,
+  'a user can upload an avatar into their own folder'
+);
+
+select lives_ok(
+  $$
+    insert into storage.objects (bucket_id, name, owner, owner_id)
+    values (
+      'profile-covers',
+      '10000000-0000-0000-0000-000000000001/owner-one-test.png',
+      '10000000-0000-0000-0000-000000000001',
+      '10000000-0000-0000-0000-000000000001'
+    )
+  $$,
+  'a user can upload a profile cover into their own folder'
+);
+
+select lives_ok(
+  $$
+    insert into storage.objects (bucket_id, name, owner, owner_id)
+    values (
+      'post-images',
+      '10000000-0000-0000-0000-000000000001/owner-one-test.png',
+      '10000000-0000-0000-0000-000000000001',
+      '10000000-0000-0000-0000-000000000001'
+    )
+  $$,
+  'a user can upload a post image into their own folder'
+);
+
+select throws_ok(
+  $$
+    insert into storage.objects (bucket_id, name, owner, owner_id)
+    values (
+      'avatars',
+      '10000000-0000-0000-0000-000000000002/owner-two-test.png',
+      '10000000-0000-0000-0000-000000000001',
+      '10000000-0000-0000-0000-000000000001'
+    )
+  $$,
+  '42501',
+  null,
+  'a user cannot upload an avatar into another user’s folder'
+);
+
+select throws_ok(
+  $$
+    insert into storage.objects (bucket_id, name, owner, owner_id)
+    values (
+      'profile-covers',
+      '10000000-0000-0000-0000-000000000002/owner-two-test.png',
+      '10000000-0000-0000-0000-000000000001',
+      '10000000-0000-0000-0000-000000000001'
+    )
+  $$,
+  '42501',
+  null,
+  'a user cannot upload a profile cover into another user’s folder'
+);
+
+select throws_ok(
+  $$
+    insert into storage.objects (bucket_id, name, owner, owner_id)
+    values (
+      'post-images',
+      '10000000-0000-0000-0000-000000000002/owner-two-test.png',
+      '10000000-0000-0000-0000-000000000001',
+      '10000000-0000-0000-0000-000000000001'
+    )
+  $$,
+  '42501',
+  null,
+  'a user cannot upload a post image into another user’s folder'
+);
+
+reset role;
+
+select is(
+  (select body from public.comments where id = '40000000-0000-0000-0000-000000000002'),
+  'Owner one edited their comment',
+  'the owner comment edit persists'
+);
+
+select is(
+  (select body from public.comments where id = '40000000-0000-0000-0000-000000000001'),
+  'A public comment by owner two',
+  'a cross-account comment edit leaves the comment unchanged'
+);
+
+select is(
+  (select count(*)::integer from storage.objects where bucket_id = 'avatars' and name = '10000000-0000-0000-0000-000000000001/owner-one-test.png'),
+  1,
+  'the uploaded avatar object is stored'
+);
+
+select is(
+  (select count(*)::integer from storage.objects where bucket_id = 'profile-covers' and name = '10000000-0000-0000-0000-000000000001/owner-one-test.png'),
+  1,
+  'the uploaded profile cover object is stored'
+);
+
+select is(
+  (select count(*)::integer from storage.objects where bucket_id = 'post-images' and name = '10000000-0000-0000-0000-000000000001/owner-one-test.png'),
+  1,
+  'the uploaded post image object is stored'
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
+
 select throws_ok(
   $$
     update public.profiles
@@ -270,6 +480,42 @@ select is(
   (select count(*)::integer from public.posts),
   1,
   'anonymous clients can read published posts but not drafts'
+);
+
+select is(
+  (select count(*)::integer from public.profiles),
+  3,
+  'anonymous clients can read public profiles'
+);
+
+select is(
+  (select count(*)::integer from public.comments),
+  3,
+  'anonymous clients can read comments on published posts'
+);
+
+select is(
+  (select count(*)::integer from public.comments where post_id = '20000000-0000-0000-0000-000000000002'),
+  0,
+  'anonymous clients cannot read comments on a private draft'
+);
+
+select is(
+  (select count(*)::integer from storage.objects where bucket_id = 'avatars'),
+  0,
+  'anonymous clients cannot list avatar object metadata'
+);
+
+select is(
+  (select count(*)::integer from storage.objects where bucket_id = 'profile-covers'),
+  0,
+  'anonymous clients cannot list profile-cover object metadata'
+);
+
+select is(
+  (select count(*)::integer from storage.objects where bucket_id = 'post-images'),
+  0,
+  'anonymous clients cannot list post-image object metadata'
 );
 
 reset role;
@@ -323,6 +569,126 @@ select is(
   ),
   1,
   'the admin correction notifies the post author'
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000002', true);
+
+select is(
+  (select count(*)::integer from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000001'),
+  0,
+  'a user cannot read another user’s notifications'
+);
+
+select lives_ok(
+  $$
+    update public.notifications
+    set read_at = now()
+    where recipient_id = '10000000-0000-0000-0000-000000000001'
+  $$,
+  'a user cannot mark another user’s notifications as read'
+);
+
+reset role;
+
+select is(
+  (select read_at is null from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000001' and type = 'post_category_correction'),
+  true,
+  'a cross-account notification update leaves it unread'
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
+
+select is(
+  (select count(*)::integer from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000001'),
+  1,
+  'a user can read their own notification'
+);
+
+select lives_ok(
+  $$
+    update public.notifications
+    set read_at = now()
+    where recipient_id = '10000000-0000-0000-0000-000000000001'
+      and type = 'post_category_correction'
+  $$,
+  'a user can mark their own notification as read'
+);
+
+reset role;
+
+select is(
+  (select read_at is not null from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000001' and type = 'post_category_correction'),
+  true,
+  'the owner notification update persists'
+);
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000002', true);
+
+select is(
+  (
+    select count(*)::integer
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'Users can delete their own avatars'
+      and cmd = 'DELETE'
+      and qual like '%storage.foldername(name)%auth.uid%'
+  ),
+  1,
+  'avatar deletion policy is scoped to the caller’s folder'
+);
+
+select is(
+  (
+    select count(*)::integer
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'Users can delete their own profile covers'
+      and cmd = 'DELETE'
+      and qual like '%storage.foldername(name)%auth.uid%'
+  ),
+  1,
+  'profile-cover deletion policy is scoped to the caller’s folder'
+);
+
+select lives_ok(
+  $$
+    update storage.objects
+    set name = '10000000-0000-0000-0000-000000000002/renamed.png'
+    where bucket_id = 'post-images'
+      and name = '10000000-0000-0000-0000-000000000001/owner-one-test.png'
+  $$,
+  'a user cannot update another user’s post image'
+);
+
+select is(
+  (select count(*)::integer from storage.objects where bucket_id = 'avatars'),
+  0,
+  'a second account cannot list avatar object metadata'
+);
+
+select is(
+  (select count(*)::integer from storage.objects where bucket_id = 'profile-covers'),
+  0,
+  'a second account cannot list profile-cover object metadata'
+);
+
+select is(
+  (select count(*)::integer from storage.objects where bucket_id = 'post-images'),
+  0,
+  'a second account cannot list post-image object metadata'
+);
+
+reset role;
+
+select is(
+  (select count(*)::integer from storage.objects where bucket_id = 'post-images' and name = '10000000-0000-0000-0000-000000000001/owner-one-test.png'),
+  1,
+  'a cross-account image update leaves the object intact'
 );
 
 select * from finish();
