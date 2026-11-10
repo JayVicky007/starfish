@@ -28,6 +28,9 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Verify Production Compilation Bundle Output
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-public-key
         run: npm run build
 
   database-tests:
@@ -44,7 +47,7 @@ jobs:
           version: latest
 
       - name: Start Local Supabase Stack
-        run: supabase start
+        run: supabase start --exclude studio
 
       - name: Reset Local Database and Apply Migrations
         run: supabase db reset
