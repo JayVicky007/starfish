@@ -8,6 +8,7 @@ not a certified or production-vetted service.
 ## Included
 
 - Email and password sign-up, sign-in, and Supabase session handling.
+- Password reset email requests and password updates through Supabase Auth.
 - User profiles with unique, permanent usernames, editable display names, and
   avatar and cover image uploads.
 - A Tiptap editor with draft autosave, draft editing, and publishing.
@@ -118,6 +119,13 @@ immutability, and owner/admin access to drafts and category corrections. They
 run only against the local Supabase stack; do not use `--remote` for tests.
 GitHub Actions runs the database tests alongside TypeScript validation and the
 production build. Browser-level signup and upload tests are not yet included.
+
+The login page provides password reset at `/reset-password`; configure the
+Supabase Auth redirect allowlist to include
+`http://localhost:3000/auth/callback` during local development and
+`https://your-domain/auth/callback` for each deployed domain. Signup and
+password reset responses avoid confirming whether a particular email address
+has an account.
 
 ## Before deploying your customized app
 

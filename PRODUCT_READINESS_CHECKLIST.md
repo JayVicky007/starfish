@@ -33,7 +33,7 @@ a deployed staging environment.
 |---|---|---|
 | Marketplace-ready template packaging | Partial | Buyer-facing setup and scope documentation is now clearer. Demo data, release packaging, license, and marketplace requirements still need validation. |
 | Domain-neutral identity | Partial | The homepage, metadata, footer, login, and development navbar sandbox use editorial/sample content. Admin category correction and the active post flows now use generic categories; the legacy `media_type` column remains synchronized for upgrade compatibility. Branding is not yet configurable. |
-| Email/password authentication | Implemented | Signup, login, and auth callback exist. Test confirmation, sign-out, expired sessions, and password recovery before release. |
+| Email/password authentication | Partial | Signup, login, confirmation callback, and password reset request/update flows exist. Deployed password recovery and sign-out/expired-session behavior still need end-to-end verification. Signup/reset responses avoid exposing whether an email is registered. |
 | Creator profiles | Implemented | Profile editing, unique usernames chosen at signup, and avatar/cover images exist. Usernames are immutable after account creation; display names remain editable. Device uploads use Supabase Storage; the avatars bucket migration was added after the reported missing-bucket issue. |
 | Editorial authoring | Implemented | Tiptap editor, draft autosave, draft editing, publishing, and post-image uploads exist. Draft editing was manually exercised after fixing the stale database column lookup. |
 | Public publications | Implemented | Blog listing and individual post routes exist, with topic filtering and published content. |
@@ -99,8 +99,9 @@ intentionally and the boundaries are repeatably tested.
   and account actions beyond post-category changes.
 - [ ] Verify profile, draft, publish, comments, moderation, notifications, and
   image lifecycle behavior end to end.
-- [ ] Decide whether to add password recovery and any additional login methods;
-  document what is supported.
+- [x] Add password recovery and document supported email/password auth flows.
+- [ ] Verify confirmation and password recovery end to end on the deployed
+  staging site; decide whether any additional login methods are needed.
 - [ ] If billing becomes a product requirement, implement a provider integration
   that uses the deployer's own account, keys, and webhook configuration; never
   route their customers' payments through the template seller.
