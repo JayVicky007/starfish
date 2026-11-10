@@ -167,7 +167,7 @@ export default function AdminUserManagement({
           {filteredUsers.map((user) => {
             const activeBanExpiry = getActiveBanExpiry(user);
             const isAdmin = user.role === "admin";
-            const displayName = user.displayName || user.username || "Unnamed member";
+            const displayName = user.displayName || "Unnamed member";
             return (
               <li key={user.id} className="rounded-2xl border border-text-muted/15 bg-background/60 p-4 sm:p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
@@ -193,20 +193,16 @@ export default function AdminUserManagement({
                   </div>
                   <details className="shrink-0">
                     <summary className="cursor-pointer rounded-lg border border-text-muted/20 px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:border-accent/50 hover:text-accent">
-                      Posts ({user.posts.length})
+                      Published posts ({user.posts.length})
                     </summary>
                     <ul className="mt-2 max-h-64 min-w-64 space-y-2 overflow-y-auto rounded-xl border border-text-muted/15 bg-surface p-3">
                       {user.posts.length ? user.posts.map((post) => (
                         <li key={post.id} className="border-b border-text-muted/10 pb-2 last:border-0 last:pb-0">
-                          {post.status === "published" ? (
-                                <Link className="text-sm font-semibold hover:text-accent" href={`/blog/${encodeURIComponent(post.slug)}`}>
-                              {post.title}
-                                </Link>
-                          ) : (
-                            <p className="text-sm font-semibold">{post.title}</p>
-                          )}
+                          <Link className="text-sm font-semibold hover:text-accent" href={`/blog/${encodeURIComponent(post.slug)}`}>
+                            {post.title}
+                          </Link>
                           <p className="mt-1 text-xs capitalize text-text-muted">
-                            {post.status} · Updated {formatDate(post.updated_at)}
+                            Updated {formatDate(post.updated_at)}
                           </p>
                         </li>
                       )) : <li className="text-xs text-text-muted">No posts.</li>}

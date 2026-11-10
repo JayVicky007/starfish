@@ -2,7 +2,6 @@ export type AdminManagedPost = {
   id: string;
   title: string;
   slug: string;
-  status: "draft" | "published";
   updated_at: string;
 };
 

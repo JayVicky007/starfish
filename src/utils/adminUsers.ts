@@ -32,7 +32,8 @@ export async function getAdminUserOverview(
   for (let from = 0; ; from += pageSize) {
     const { data, error } = await admin
       .from("posts")
-      .select("id, author_id, title, slug, status, updated_at")
+      .select("id, author_id, title, slug, updated_at")
+      .eq("status", "published")
       .order("updated_at", { ascending: false })
       .range(from, from + pageSize - 1);
     if (error) throw new Error(error.message);

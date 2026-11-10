@@ -2,7 +2,7 @@ create extension if not exists pgtap with schema extensions;
 
 begin;
 
-select plan(59);
+select plan(62);
 
 insert into auth.users (
   id,
@@ -102,6 +102,23 @@ values (
   'general',
   'design',
   'Seed audit entry for access tests'
+);
+
+insert into public.post_category_changes (
+  id,
+  post_id,
+  actor_id,
+  previous_category,
+  new_category,
+  reason
+)
+values (
+  '30000000-0000-0000-0000-000000000002',
+  '20000000-0000-0000-0000-000000000001',
+  '10000000-0000-0000-0000-000000000003',
+  'general',
+  'design',
+  'Seed audit entry for a draft'
 );
 
 insert into public.comments (id, post_id, author_id, body)
@@ -524,20 +541,46 @@ select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000003
 
 select is(
   (select count(*)::integer from public.posts where status = 'draft'),
-  2,
-  'an admin can read drafts owned by other accounts'
+  0,
+  'an admin cannot read other users’ private drafts'
+);
+
+select is(
+  (select count(*)::integer from public.posts where status = 'published'),
+  1,
+  'an admin can read published posts'
+);
+
+select throws_ok(
+  $$
+    select * from public.admin_correct_post_category(
+      '20000000-0000-0000-0000-000000000001',
+      'design',
+      'An admin cannot correct a private draft'
+    )
+  $$,
+  '42501',
+  'Only published posts can be corrected.',
+  'the admin correction RPC rejects private drafts'
+);
+
+select throws_ok(
+  $$ select public.admin_delete_post('20000000-0000-0000-0000-000000000001') $$,
+  'P0002',
+  'Published post not found.',
+  'the admin delete RPC rejects private drafts'
 );
 
 select is(
   (select count(*)::integer from public.post_category_changes),
   1,
-  'an admin can read the category audit history'
+  'an admin can read only published post category history'
 );
 
 select lives_ok(
   $$
     select * from public.admin_correct_post_category(
-      '20000000-0000-0000-0000-000000000001',
+      '20000000-0000-0000-0000-000000000003',
       'design',
       'An admin verified this post category should change'
     )
@@ -548,14 +591,14 @@ select lives_ok(
 reset role;
 
 select is(
-  (select category from public.posts where id = '20000000-0000-0000-0000-000000000001'),
+  (select category from public.posts where id = '20000000-0000-0000-0000-000000000003'),
   'design',
   'the admin correction updates the post category'
 );
 
 select is(
-  (select count(*)::integer from public.post_category_changes where post_id = '20000000-0000-0000-0000-000000000001'),
-  1,
+  (select count(*)::integer from public.post_category_changes where post_id = '20000000-0000-0000-0000-000000000003'),
+  2,
   'the admin correction records an audit event'
 );
 
@@ -563,8 +606,8 @@ select is(
   (
     select count(*)::integer
     from public.notifications
-    where recipient_id = '10000000-0000-0000-0000-000000000001'
-      and post_id = '20000000-0000-0000-0000-000000000001'
+    where recipient_id = '10000000-0000-0000-0000-000000000002'
+      and post_id = '20000000-0000-0000-0000-000000000003'
       and type = 'post_category_correction'
   ),
   1,
@@ -572,10 +615,10 @@ select is(
 );
 
 set local role authenticated;
-select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000002', true);
+select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
 
 select is(
-  (select count(*)::integer from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000001'),
+  (select count(*)::integer from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000002'),
   0,
   'a user cannot read another user’s notifications'
 );
@@ -584,7 +627,7 @@ select lives_ok(
   $$
     update public.notifications
     set read_at = now()
-    where recipient_id = '10000000-0000-0000-0000-000000000001'
+    where recipient_id = '10000000-0000-0000-0000-000000000002'
   $$,
   'a user cannot mark another user’s notifications as read'
 );
@@ -592,16 +635,16 @@ select lives_ok(
 reset role;
 
 select is(
-  (select read_at is null from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000001' and type = 'post_category_correction'),
+  (select read_at is null from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000002' and type = 'post_category_correction'),
   true,
   'a cross-account notification update leaves it unread'
 );
 
 set local role authenticated;
-select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
+select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000002', true);
 
 select is(
-  (select count(*)::integer from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000001'),
+  (select count(*)::integer from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000002'),
   1,
   'a user can read their own notification'
 );
@@ -610,7 +653,7 @@ select lives_ok(
   $$
     update public.notifications
     set read_at = now()
-    where recipient_id = '10000000-0000-0000-0000-000000000001'
+    where recipient_id = '10000000-0000-0000-0000-000000000002'
       and type = 'post_category_correction'
   $$,
   'a user can mark their own notification as read'
@@ -619,7 +662,7 @@ select lives_ok(
 reset role;
 
 select is(
-  (select read_at is not null from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000001' and type = 'post_category_correction'),
+  (select read_at is not null from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000002' and type = 'post_category_correction'),
   true,
   'the owner notification update persists'
 );

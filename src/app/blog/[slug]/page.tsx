@@ -58,7 +58,8 @@ export default async function BlogPostPage({ params }: PageProps) {
     profile = data;
   }
 
-  const authorName = post.author?.display_name || post.author?.username || "Platform Developer";
+  const authorName = post.author?.display_name ||
+    (post.author?.username ? `@${post.author.username}` : "Platform Developer");
   const currentTopic = topicLabels[post.category] || "General Technical";
   const currentAuthor = {
     username: profile?.username ?? null,
@@ -97,7 +98,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               )}
               <div>
                 <span className="block font-bold text-foreground group-hover:text-accent transition-colors">{authorName}</span>
-                <span className="block text-xs">@{post.author.username}</span>
+                {post.author.display_name && <span className="block text-xs">@{post.author.username}</span>}
               </div>
             </Link>
           ) : (

@@ -39,7 +39,7 @@ export default async function ProfilePage() {
   const drafts = userPosts?.filter(post => post.status === "draft") || [];
   const published = userPosts?.filter(post => post.status === "published") || [];
 
-  const displayName = profile?.display_name || profile?.username || "Community member";
+  const displayName = profile?.display_name || "Community member";
 
   return (
     <main className="min-h-screen bg-background px-4 py-8 text-foreground sm:px-6 sm:py-12">

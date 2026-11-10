@@ -18,7 +18,7 @@ function formatCommentDate(value: string) {
 }
 
 function getAuthorName(comment: BlogComment) {
-  return comment.author?.display_name || comment.author?.username || "Community member";
+  return comment.author?.display_name || "Community member";
 }
 
 function renderCommentBody(body: string, mentionUsernames: string[]) {
@@ -250,7 +250,7 @@ export default function BlogComments({
             maxLength={MAX_COMMENT_LENGTH}
             rows={4}
             required
-            placeholder="Share a considered thought..."
+            placeholder="Share a thought... Use @username to mention someone."
             className="mt-3 w-full resize-y rounded-xl border border-text-muted/20 bg-background px-4 py-3 text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
           />
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -418,7 +418,7 @@ export default function BlogComments({
                       maxLength={MAX_COMMENT_LENGTH}
                       rows={3}
                       required
-                      placeholder="Write a thoughtful reply..."
+                      placeholder="Write a reply... Use @username to mention someone."
                       className="mt-2 w-full resize-y rounded-lg border border-text-muted/20 bg-surface px-3 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
                     />
                     <div className="mt-2 flex justify-end gap-2">

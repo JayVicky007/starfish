@@ -7,7 +7,8 @@ import { createClient } from "@/utils/supabase/client";
 import type { CommentReport } from "@/utils/blogService";
 
 function getReporterName(report: CommentReport) {
-  return report.reporter?.display_name || report.reporter?.username || "Community member";
+  return report.reporter?.display_name ||
+    (report.reporter?.username ? `@${report.reporter.username}` : "Community member");
 }
 
 export default function CommentReportsQueue({

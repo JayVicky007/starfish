@@ -7,7 +7,6 @@ import { createClient } from "@/utils/supabase/client";
 type ManagedPost = {
   id: string;
   title: string;
-  status: "draft" | "published";
   updated_at: string;
   author:
     | { username: string | null; display_name: string | null }
@@ -80,7 +79,7 @@ export default function AdminPostManagement({
       <div>
         <h2 className="text-2xl font-black">Manage posts</h2>
         <p className="mt-1 text-sm text-text-muted">
-          Search drafts and publications. Deleting a post permanently removes its comments, likes, reports, and notifications.
+          Search published posts. Deleting a post permanently removes its comments, likes, reports, and notifications.
         </p>
       </div>
 
@@ -101,7 +100,7 @@ export default function AdminPostManagement({
         <ul className="mt-5 space-y-3">
           {filteredPosts.map((post) => {
             const author = getAuthor(post);
-            const authorName = author?.display_name || author?.username || "Unknown author";
+            const authorName = author?.display_name || "Unknown author";
             return (
               <li
                 key={post.id}
@@ -110,7 +109,7 @@ export default function AdminPostManagement({
                 <div className="min-w-0">
                   <h3 className="break-words font-bold">{post.title}</h3>
                   <p className="mt-1 text-xs text-text-muted">
-                    By {authorName} · {post.status === "published" ? "Published" : "Draft"} · Updated {formatDate(post.updated_at)}
+                    By {authorName}{author?.username ? ` · @${author.username}` : ""} · Updated {formatDate(post.updated_at)}
                   </p>
                 </div>
                 <button

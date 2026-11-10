@@ -126,7 +126,7 @@ function PostCategoryCard({
     }
   }
 
-  const authorName = post.author?.display_name || post.author?.username || "Unknown author";
+  const authorName = post.author?.display_name || "Unknown author";
 
   return (
     <article className="rounded-2xl border border-text-muted/15 bg-background/60 p-4 sm:p-5">
@@ -134,7 +134,7 @@ function PostCategoryCard({
         <div className="min-w-0">
           <h3 className="font-bold text-foreground text-base tracking-tight">{post.title}</h3>
           <p className="mt-1 text-xs text-text-muted">
-            By {authorName} · {post.status === "published" ? "Published" : "Draft"}
+            By {authorName}{post.author?.username ? ` · @${post.author.username}` : ""} · Published
           </p>
         </div>
         <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${

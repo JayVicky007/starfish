@@ -54,7 +54,7 @@ export default function ProfileIdentity({
 
   function startEditing(kind: ImageKind) {
     setEditing(kind);
-    setImageUrlInput(kind === "avatar" ? currentAvatarUrl ?? "" : currentCoverUrl ?? "");
+    setImageUrlInput("");
     setMessage("");
   }
 
@@ -134,16 +134,19 @@ export default function ProfileIdentity({
     if (!editing) return;
 
     const value = imageUrlInput.trim();
-    if (value) {
-      try {
-        const parsed = new URL(value);
-        if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error();
-      } catch {
-        setMessage("Enter a valid image URL beginning with http:// or https://.");
-        return;
-      }
+    if (!value) {
+      setMessage("Enter an image URL, or use Remove to clear the current image.");
+      return;
     }
-    void saveImage(editing, value || null);
+
+    try {
+      const parsed = new URL(value);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error();
+    } catch {
+      setMessage("Enter a valid image URL beginning with http:// or https://.");
+      return;
+    }
+    void saveImage(editing, value);
   }
 
   const editorTitle = editing === "avatar" ? "Profile photo" : "Cover image";
@@ -272,7 +275,7 @@ export default function ProfileIdentity({
                     type="url"
                     value={imageUrlInput}
                     onChange={(event) => setImageUrlInput(event.target.value)}
-                    placeholder="https://example.com/image.jpg"
+                    placeholder="https://example.com/path/to/image.jpg"
                     className="w-full rounded-lg border border-text-muted/20 bg-background py-2.5 pl-10 pr-3 text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
                   />
                 </div>

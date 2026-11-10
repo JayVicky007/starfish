@@ -115,8 +115,10 @@ npx supabase stop
 `db reset` deletes and rebuilds the **local** Supabase database from the
 repository migrations and seed file. Do not run it against a remote project.
 These tests exercise the signup profile trigger, username uniqueness and
-immutability, and owner/admin access to drafts and category corrections. They
-run only against the local Supabase stack; do not use `--remote` for tests.
+immutability, owner access to drafts, and admin access to published posts and
+category corrections. Admins cannot read another user's private drafts or use
+moderation tools to correct or delete drafts.
+They run only against the local Supabase stack; do not use `--remote` for tests.
 GitHub Actions runs the database tests alongside TypeScript validation and the
 production build. Browser-level signup and upload tests are not yet included.
 

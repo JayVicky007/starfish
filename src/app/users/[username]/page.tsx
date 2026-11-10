@@ -19,7 +19,7 @@ export default async function PublicUserProfilePage({
   if (!profile) notFound();
 
   const posts = await getPublishedPostsByAuthor(profile.id);
-  const displayName = profile.display_name || profile.username;
+  const displayName = profile.display_name || "Community member";
 
   return (
     <main className="min-h-screen bg-background px-6 py-12 text-foreground sm:py-16">

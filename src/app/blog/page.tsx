@@ -94,7 +94,8 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => {
-              const authorName = post.author?.display_name || post.author?.username || "Platform Developer";
+              const authorName = post.author?.display_name ||
+                (post.author?.username ? `@${post.author.username}` : "Platform Developer");
               const currentTopic = topicLabels[post.category] || "General Technical";
               
               return (
@@ -130,6 +131,9 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                       </span>
                       <div>
                         <span className="block font-bold text-foreground">{authorName}</span>
+                        {post.author?.display_name && post.author.username && (
+                          <span className="block text-[10px]">@{post.author.username}</span>
+                        )}
                         <span className="block text-[10px] font-normal">{formatDate(post.published_at)}</span>
                       </div>
                     </div>

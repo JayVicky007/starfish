@@ -150,7 +150,7 @@ export default function SandboxPage() {
                   <span className="flex h-7 w-7 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800 text-xs font-bold text-amber-400">
                     {accountInitial}
                   </span>
-                  <span className="max-w-[80px] truncate">{username}</span>
+                  <span className="max-w-[80px] truncate">@{username}</span>
                   <ChevronDown size={14} className="opacity-60 transition-transform group-hover/profile:rotate-180" />
                 </button>
                 

@@ -23,6 +23,7 @@ export default async function AdminCorrectionsPage() {
   const { data: posts, error: postsError } = await supabase
     .from("posts")
     .select("id, title, slug, status, category, author_id")
+    .eq("status", "published")
     .order("updated_at", { ascending: false });
   if (postsError) throw new Error(postsError.message);
 
@@ -47,7 +48,7 @@ export default async function AdminCorrectionsPage() {
       ? supabase.from("profiles").select("id, username, display_name").in("id", actorIds)
       : Promise.resolve({ data: [], error: null }),
     historyPostIds.length
-      ? supabase.from("posts").select("id, title").in("id", historyPostIds)
+      ? supabase.from("posts").select("id, title").eq("status", "published").in("id", historyPostIds)
       : Promise.resolve({ data: [], error: null }),
   ]);
   if (authorsResult.error) throw new Error(authorsResult.error.message);
@@ -71,8 +72,9 @@ export default async function AdminCorrectionsPage() {
     ...entry,
     post_title: historyPostTitles.get(entry.post_id) ?? "Deleted post",
     actor_name: actorsById.get(entry.actor_id ?? "")?.display_name ||
-      actorsById.get(entry.actor_id ?? "")?.username ||
-      "Former admin",
+      (actorsById.get(entry.actor_id ?? "")?.username
+        ? `@${actorsById.get(entry.actor_id ?? "")?.username}`
+        : "Former admin"),
   }));
 
   return (

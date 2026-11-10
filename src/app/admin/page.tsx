@@ -10,7 +10,7 @@ const adminSections = [
   {
     href: "/admin/posts",
     title: "Manage posts",
-    description: "Review published posts and drafts, and remove content that violates your community guidelines.",
+    description: "Review published posts and remove content that violates your community guidelines.",
     action: "Manage posts",
   },
   {

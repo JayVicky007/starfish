@@ -3,17 +3,18 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronDown, User, PenSquare, LogOut, Menu, X, Layers, Cpu, ShieldAlert, Terminal } from "lucide-react";
+import { Bell, ChevronDown, User, PenSquare, LogOut, Menu, X, Layers, Cpu, ShieldAlert, Terminal, BookOpen } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import ThemeToggle from "./ThemeToggle";
 
-export type NavbarTopic = "saas" | "ai" | "devops" | "design";
+export type NavbarTopic = "saas" | "ai" | "devops" | "design" | "general";
 
 const topicLinks = [
   { label: "SaaS & Architecture", href: "/blog?topic=saas", icon: <Layers size={14} className="text-accent" /> },
   { label: "AI & Automation", href: "/blog?topic=ai", icon: <Cpu size={14} className="text-emerald-400" /> },
   { label: "DevOps & Infosec", href: "/blog?topic=devops", icon: <ShieldAlert size={14} className="text-rose-400" /> },
   { label: "Design Systems", href: "/blog?topic=design", icon: <Terminal size={14} className="text-blue-400" /> },
+  { label: "General / Other", href: "/blog?topic=general", icon: <BookOpen size={14} className="text-violet-400" /> },
 ];
 
 function TopicDropdownMenu({ label, menuId }: { label: string; menuId: string }) {
@@ -225,7 +226,7 @@ export default function Navbar() {
                       <span className="text-xs font-bold text-accent">{accountInitial}</span>
                     )}
                   </span>
-                  <span className="truncate">{username || "Account"}</span>
+                  <span className="truncate">{username ? `@${username}` : "Account"}</span>
                   <ChevronDown className="h-3 w-3 opacity-60 transition-transform group-hover/user-menu:rotate-180" aria-hidden="true" />
                 </button>
                 <div role="menu" className="absolute right-0 top-full z-50 mt-1 flex w-56 flex-col gap-1 rounded-2xl border border-text-muted/15 bg-surface p-2 text-sm font-medium text-foreground shadow-xl invisible opacity-0 translate-y-1 group-hover/user-menu:visible group-hover/user-menu:opacity-100 group-hover/user-menu:translate-y-0 transition-all duration-150 ease-out">
@@ -307,4 +308,3 @@ export default function Navbar() {
     </header>
   );
 }
-

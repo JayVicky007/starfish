@@ -88,7 +88,7 @@ export default function MentionNotifications({
           You don&apos;t have any notifications yet.
         </p>
       ) : notifications.map((notification) => {
-        const actorName = notification.actor?.display_name || notification.actor?.username || "A community member";
+        const actorName = notification.actor?.display_name || "A community member";
         return (
           <article
             key={notification.id}
