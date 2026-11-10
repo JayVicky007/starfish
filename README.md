@@ -116,8 +116,9 @@ npx supabase stop
 repository migrations and seed file. Do not run it against a remote project.
 These tests exercise the signup profile trigger, username uniqueness and
 immutability, owner access to drafts, and admin access to published posts and
-category corrections. Admins cannot read another user's private drafts or use
-moderation tools to correct or delete drafts.
+category corrections. They also verify that published-post mentions notify
+their targets, while draft mentions do not. Admins cannot read another user's
+private drafts or use moderation tools to correct or delete drafts.
 They run only against the local Supabase stack; do not use `--remote` for tests.
 GitHub Actions runs the database tests alongside TypeScript validation and the
 production build. Browser-level signup and upload tests are not yet included.

@@ -2,7 +2,7 @@ create extension if not exists pgtap with schema extensions;
 
 begin;
 
-select plan(62);
+select plan(65);
 
 insert into auth.users (
   id,
@@ -86,6 +86,48 @@ values
     'article',
     'general'
   );
+
+insert into public.posts (id, author_id, title, slug, body, status, content_type, category)
+values (
+  '20000000-0000-0000-0000-000000000004',
+  '10000000-0000-0000-0000-000000000001',
+  'Post mention notification test',
+  'post-mention-notification-test',
+  '<p>A draft mentioning @site_admin.</p>',
+  'draft',
+  'article',
+  'general'
+);
+
+select is(
+  (select count(*)::integer from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000003'),
+  0,
+  'a draft post mention does not notify its target'
+);
+
+update public.posts
+set status = 'published'
+where id = '20000000-0000-0000-0000-000000000004';
+
+select is(
+  (select count(*)::integer from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000003' and post_id = '20000000-0000-0000-0000-000000000004' and type = 'post_mention' and comment_id is null),
+  1,
+  'publishing a post sends one notification to each mentioned user'
+);
+
+update public.posts
+set body = '<p>Edited post still mentions @site_admin.</p>'
+where id = '20000000-0000-0000-0000-000000000004';
+
+select is(
+  (select count(*)::integer from public.notifications where recipient_id = '10000000-0000-0000-0000-000000000003' and post_id = '20000000-0000-0000-0000-000000000004' and type = 'post_mention'),
+  1,
+  'editing a published post does not duplicate its mention notification'
+);
+
+update public.posts
+set status = 'draft'
+where id = '20000000-0000-0000-0000-000000000004';
 
 insert into public.post_category_changes (
   id,

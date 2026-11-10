@@ -9,7 +9,7 @@ import type { BlogComment } from "@/utils/blogService";
 export type MentionNotification = {
   id: string;
   comment_id: string | null;
-  type: "comment_mention" | "comment_reply" | "admin_post_correction" | "post_category_correction";
+  type: "comment_mention" | "comment_reply" | "post_mention" | "admin_post_correction" | "post_category_correction";
   message: string | null;
   created_at: string;
   read_at: string | null;
@@ -67,11 +67,12 @@ export default function MentionNotifications({
     if (notification.read_at || await markAsRead(notification.id)) {
       if (notification.post) {
         const isCorrection = notification.type === "admin_post_correction" || notification.type === "post_category_correction";
-        router.push(isCorrection && notification.post.status === "draft"
+        const destination = isCorrection && notification.post.status === "draft"
           ? `/blog/edit/${notification.post.id}`
-          : isCorrection
-            ? `/blog/${notification.post.slug}`
-            : `/blog/${notification.post.slug}#comment-${notification.comment_id}`);
+          : `/blog/${notification.post.slug}`;
+        router.push(notification.type === "comment_mention" || notification.type === "comment_reply"
+          ? `${destination}#comment-${notification.comment_id}`
+          : destination);
       }
     }
   }
@@ -125,6 +126,37 @@ export default function MentionNotifications({
                         Reason: {notification.message}
                       </span>
                     )}
+                  </p>
+                ) : notification.type === "post_mention" ? (
+                  <p className="text-sm">
+                    {notification.actor?.username ? (
+                      <>
+                        <Link href={`/users/${notification.actor.username}`} className="font-bold hover:text-accent">
+                          {actorName}
+                        </Link>{" "}
+                        <Link href={`/users/${notification.actor.username}`} className="text-xs text-text-muted hover:text-accent">
+                          @{notification.actor.username}
+                        </Link>
+                      </>
+                    ) : (
+                      <span className="font-bold">{actorName}</span>
+                    )}{" "}
+                    mentioned you in a post{" "}
+                    {notification.post ? (
+                      <Link
+                        href={`/blog/${notification.post.slug}`}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          void openNotification(notification);
+                        }}
+                        className="font-semibold text-accent hover:underline"
+                      >
+                        {notification.post.title}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold">that is no longer available</span>
+                    )}
+                    .
                   </p>
                 ) : (
                 <p className="text-sm">

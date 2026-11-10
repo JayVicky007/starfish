@@ -418,7 +418,7 @@ export default function BlogComments({
                       maxLength={MAX_COMMENT_LENGTH}
                       rows={3}
                       required
-                      placeholder="Write a reply... Use @username to mention someone."
+                      placeholder="Write a reply..."
                       className="mt-2 w-full resize-y rounded-lg border border-text-muted/20 bg-surface px-3 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
                     />
                     <div className="mt-2 flex justify-end gap-2">
