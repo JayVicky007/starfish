@@ -16,5 +16,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         ? "That confirmation link is invalid or has expired. Please request a new one."
         : "";
 
-  return <LoginForm initialMessage={initialMessage} />;
+  return (
+    <LoginForm
+      initialMessage={initialMessage}
+      allowConfirmationResend={params.error === "link_invalid"}
+    />
+  );
 }

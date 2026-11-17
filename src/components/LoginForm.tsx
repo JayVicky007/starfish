@@ -6,7 +6,13 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Terminal, Key, ShieldCheck } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
-export default function LoginForm({ initialMessage = "" }: { initialMessage?: string }) {
+export default function LoginForm({
+  initialMessage = "",
+  allowConfirmationResend = false,
+}: {
+  initialMessage?: string;
+  allowConfirmationResend?: boolean;
+}) {
   const router = useRouter();
   const supabase = createClient();
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -16,6 +22,7 @@ export default function LoginForm({ initialMessage = "" }: { initialMessage?: st
   const [message, setMessage] = useState(initialMessage);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAccountHelp, setShowAccountHelp] = useState(false);
+  const [showConfirmationResend, setShowConfirmationResend] = useState(allowConfirmationResend);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,9 +49,10 @@ export default function LoginForm({ initialMessage = "" }: { initialMessage?: st
             /already (registered|exists)/i.test(result.error.message));
         if (duplicateSignup) {
           setMessage(
-            "We couldn’t create an account with those details. If you already have an account, sign in or reset your password.",
+            "If this email can be registered, check your inbox for a confirmation link. If you already have an account, sign in or reset your password.",
           );
           setShowAccountHelp(true);
+          setShowConfirmationResend(true);
         } else {
           setMessage(result.error.message);
         }
@@ -53,6 +61,7 @@ export default function LoginForm({ initialMessage = "" }: { initialMessage?: st
           "If this email can be registered, check your inbox for a confirmation link. If you already have an account, sign in or reset your password.",
         );
         setShowAccountHelp(true);
+        setShowConfirmationResend(true);
       } else {
         router.push("/");
         router.refresh();
@@ -63,6 +72,40 @@ export default function LoginForm({ initialMessage = "" }: { initialMessage?: st
           ? error.message
           : "Unable to establish core channel connection to the authentication database.",
       );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function resendConfirmationEmail() {
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      setMessage("Enter the email address you used to sign up.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage("");
+    try {
+      await supabase.auth.resend({
+        type: "signup",
+        email: normalizedEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      setMessage(
+        "For privacy, we can’t confirm whether an email address has an account. If you need a confirmation link, check your inbox; if it doesn’t arrive, wait a moment and try again.",
+      );
+      setShowAccountHelp(true);
+      setShowConfirmationResend(true);
+    } catch {
+      setMessage(
+        "For privacy, we can’t confirm whether an email address has an account. If you need a confirmation link, check your inbox; if it doesn’t arrive, wait a moment and try again.",
+      );
+      setShowAccountHelp(true);
+      setShowConfirmationResend(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -155,6 +198,16 @@ export default function LoginForm({ initialMessage = "" }: { initialMessage?: st
                   </Link>
                 </div>
               )}
+              {(showAccountHelp || showConfirmationResend) && (
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => void resendConfirmationEmail()}
+                  className="text-left underline hover:text-accent disabled:opacity-60"
+                >
+                  Resend confirmation email
+                </button>
+              )}
             </div>
           )}
           <button
@@ -182,6 +235,7 @@ export default function LoginForm({ initialMessage = "" }: { initialMessage?: st
             setMode(mode === "login" ? "signup" : "login");
             setMessage("");
             setShowAccountHelp(false);
+            setShowConfirmationResend(false);
           }}
           className="text-xs font-bold text-text-muted transition-colors hover:text-accent cursor-pointer block pt-2"
         >

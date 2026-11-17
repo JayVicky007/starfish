@@ -123,7 +123,10 @@ They run only against the local Supabase stack; do not use `--remote` for tests.
 GitHub Actions runs the database tests alongside TypeScript validation and the
 production build. Browser-level signup and upload tests are not yet included.
 
-The login page provides password reset at `/reset-password`; configure the
+If a signup confirmation email is delayed or its link expires, users can request
+a new confirmation email from the signup response or the invalid-link screen.
+The response remains generic to avoid revealing whether an email address is
+registered. The login page provides password reset at `/reset-password`; configure the
 Supabase Auth redirect allowlist to include
 `http://localhost:3000/auth/callback` during local development and
 `https://your-domain/auth/callback` for each deployed domain. Signup and
