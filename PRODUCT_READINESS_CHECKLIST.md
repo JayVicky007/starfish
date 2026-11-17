@@ -125,6 +125,9 @@ does not rely on manual database edits or undocumented provider settings.
 - [ ] Deploy a staging instance and test signup, email confirmation, sessions,
   uploads, authorization, and error handling there. Billing tests are only
   needed if a provider integration is later added.
+- [ ] Before release, restore the temporary email-send rate limit used for
+  password-reset testing to the intended production limit in local and hosted
+  Supabase settings.
 - [ ] Provide a recovery/backup and migration rollback or forward-fix policy.
 
 **Done when:** a new buyer can follow the docs from purchase/download to a
