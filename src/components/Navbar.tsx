@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Bell, ChevronDown, User, PenSquare, LogOut, Menu, X, Layers, Cpu, ShieldAlert, Terminal, BookOpen } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
@@ -77,7 +78,6 @@ function TopicDropdownMenu({ label, menuId }: { label: string; menuId: string })
 }
 
 export default function Navbar() {
-  const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -221,7 +221,7 @@ export default function Navbar() {
                 <button type="button" className="inline-flex max-w-28 items-center gap-2 truncate transition-colors hover:text-accent cursor-pointer text-text-muted">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-text-muted/20 bg-surface">
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                      <Image src={avatarUrl} alt="" width={32} height={32} unoptimized className="h-full w-full object-cover" />
                     ) : (
                       <span className="text-xs font-bold text-accent">{accountInitial}</span>
                     )}

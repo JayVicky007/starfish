@@ -1,9 +1,11 @@
 # Starfish Product Readiness Checklist
 
 This checklist is based on the current repository and the manual checks reported
-so far. A feature marked implemented is not automatically production-verified;
-the release checks below still need to pass against a clean Supabase project and
-a deployed staging environment.
+so far. A feature marked implemented is not automatically production-verified.
+The database suite has passed against a disposable local Supabase stack, and a
+staging deployment using a separate Supabase project already exists. The
+remaining release checks below concern any unverified staging flows, not
+recreating that project or deployment.
 
 ## Agreed initial scope
 
@@ -33,7 +35,7 @@ a deployed staging environment.
 |---|---|---|
 | Marketplace-ready template packaging | Partial | Buyer-facing setup and scope documentation is now clearer. Demo data, release packaging, license, and marketplace requirements still need validation. |
 | Domain-neutral identity | Partial | The homepage, metadata, footer, login, and development navbar sandbox use editorial/sample content. Admin category correction and the active post flows now use generic categories; the legacy `media_type` column remains synchronized for upgrade compatibility. Branding is not yet configurable. |
-| Email/password authentication | Partial | Signup, login, confirmation callback, and password reset request/update flows exist. Deployed password recovery and sign-out/expired-session behavior still need end-to-end verification. Signup/reset responses avoid exposing whether an email is registered. |
+| Email/password authentication | Partial | Signup, login, confirmation callback, and password reset request/update flows exist. Signup, email confirmation, password recovery, and session behavior were tested on staging. Sessions persist through token refresh unless a maximum lifetime or inactivity timeout is configured. Signup/reset responses avoid exposing whether an email is registered. |
 | Creator profiles | Implemented | Profile editing, unique usernames chosen at signup, and avatar/cover images exist. Usernames are immutable after account creation; display names remain editable. Device uploads use Supabase Storage; the avatars bucket migration was added after the reported missing-bucket issue. |
 | Editorial authoring | Implemented | Tiptap editor, draft autosave, draft editing, publishing, and post-image uploads exist. Draft editing was manually exercised after fixing the stale database column lookup. |
 | Public publications | Implemented | Blog listing and individual post routes exist, with topic filtering and published content. |
@@ -43,7 +45,7 @@ a deployed staging environment.
 | Billing integration | Optional / missing | No checkout, signed billing webhook, subscription state, or entitlements exist. These are not required for the initial template; if later included, deployments should bring their own provider accounts and secrets. |
 | Team organizations | Out of initial scope | No organization membership or invitation system was found. Avoid implying multi-tenant/team support unless a future scope explicitly includes it. |
 | Automated product/security tests | Partial | pgTAP covers signup, username guarantees, profile/comment/notification access, draft/category authorization, and storage ownership/listing against a clean local Supabase stack in CI. Browser-level signup and upload tests and broader moderation/lifecycle coverage remain. |
-| Setup and deployment guidance | Partial | README provides basic Supabase setup, but clean-project migration instructions and a tested staging/deployment walkthrough remain to be verified. |
+| Setup and deployment guidance | Partial | README provides basic Supabase setup, and the staging deployment and key user flows have been verified. Clean-project buyer migration instructions and a documented setup walkthrough still need verification. |
 | Product claims and licensing | Partial | README and homepage no longer claim billing, production certification, enterprise/team support, or rights that are not established. The distribution license and marketplace listing requirements remain undecided. |
 
 ## Build plan
@@ -100,8 +102,10 @@ intentionally and the boundaries are repeatably tested.
 - [ ] Verify profile, draft, publish, comments, moderation, notifications, and
   image lifecycle behavior end to end.
 - [x] Add password recovery and document supported email/password auth flows.
-- [ ] Verify confirmation and password recovery end to end on the deployed
-  staging site; decide whether any additional login methods are needed.
+- [x] Verify password recovery and session behavior on the existing staging
+  site (confirmed by the user on 2026-11-18). Supabase access tokens expire
+  and refresh automatically; no maximum session lifetime or inactivity timeout
+  has been selected.
 - [ ] If billing becomes a product requirement, implement a provider integration
   that uses the deployer's own account, keys, and webhook configuration; never
   route their customers' payments through the template seller.
@@ -121,10 +125,24 @@ does not rely on manual database edits or undocumented provider settings.
   real secrets or depend on the author's live Supabase project.
 - [x] Add automated database tests to CI alongside type-check and production
   build.
-- [ ] Resolve or explicitly track existing full-project lint errors.
-- [ ] Deploy a staging instance and test signup, email confirmation, sessions,
-  uploads, authorization, and error handling there. Billing tests are only
-  needed if a provider integration is later added.
+- [x] Verify TypeScript validation and the production build locally on
+  2026-11-18.
+- [x] Clear the 2026-11-18 lint baseline (11 errors and 14 warnings across
+  `src/app/blog/[slug]/page.tsx`, `src/app/blog/page.tsx`,
+  `src/components/BlogComments.tsx`, `src/components/Navbar.tsx`,
+  `src/components/WritePostForm.tsx`, and `src/utils/blogService.ts`).
+  `npm run lint`, TypeScript validation, and the production build now pass.
+- [x] Run the database suite on a disposable Supabase stack. On 2026-11-18,
+  all 21 migrations applied successfully to a separate temporary project and
+  all 65 pgTAP tests passed. The usual `supabase db reset` workflow is
+  destructive to its local database, so do not run it against a local stack
+  unless its data is confirmed disposable.
+- [x] Deploy a staging instance using a separate Supabase project (already
+  completed; do not recreate it).
+- [x] Verify signup, email confirmation, sessions, uploads, authorization, and
+  error handling on the existing staging deployment (confirmed by the user on
+  2026-11-18). Billing tests are only needed if a provider integration is
+  later added.
 - [ ] Before release, restore the temporary email-send rate limit used for
   password-reset testing to the intended production limit in local and hosted
   Supabase settings.
@@ -133,6 +151,55 @@ does not rely on manual database edits or undocumented provider settings.
 **Done when:** a new buyer can follow the docs from purchase/download to a
 working deployment on their own Supabase project, and CI plus the release
 checklist catch regressions before launch.
+
+### 5. Prepare for marketplace sale
+
+Envato's [author application update](https://help.author.envato.com/hc/en-us/articles/53981083605913-Author-applications-are-paused)
+said on 2026-11-06 that it was not accepting new author accounts and that
+Theme and Code categories were not currently planned to reopen. It also says
+AI-generated content is not accepted. Since parts of this project have
+AI-assisted changes, confirm whether the policy affects this item before
+pursuing Envato. Recheck the current rules before relying on Envato as the
+launch channel; preparation does not guarantee marketplace access or approval.
+
+- [x] Keep preparations platform-neutral until the sales channel is selected.
+- [ ] Choose the initial sales channel and confirm the correct category. Envato
+  distinguishes ThemeForest web themes/templates from CodeCanyon code/scripts;
+  confirm the category for this full-stack Next.js starter before tailoring the
+  listing.
+- [ ] Complete seller onboarding when the chosen platform permits it. The
+  seller must provide any required identity, business, tax, and payout details.
+- [ ] Prepare the downloadable release ZIP with a clear folder structure;
+  exclude secrets, `.env.local`, dependencies, build output, and unrelated
+  development files; test setup from a fresh extraction.
+- [ ] Create clear beginner-oriented English installation, configuration,
+  customization, troubleshooting, and feature documentation. Envato's
+  [Theme](https://help.author.envato.com/hc/en-us/articles/360000470826-Themes-Item-Preparation-Technical-Requirements)
+  and
+  [Code](https://help.author.envato.com/hc/en-us/articles/360000471583-Code-Item-Preparation-Technical-Requirements)
+  item guidance requires an English HTML or PDF help file; CodeCanyon also
+  requires publicly accessible online documentation.
+- [ ] Prepare an accurate live demo where appropriate, plus marketplace-ready
+  screenshots/preview images and a cover/thumbnail that match the actual
+  product. Follow the selected platform's
+  [presentation requirements](https://help.author.envato.com/hc/en-us/articles/360000424863-Item-Presentation-Requirements)
+  and test the demo and every preview link.
+- [ ] Prepare the listing: category, concise title, plain-language feature
+  description, requirements/limitations, tags, pricing, and disclosure of
+  preview-only assets, following the platform's
+  [item information requirements](https://help.author.envato.com/hc/en-us/articles/360000471066-Item-Information-and-Metadata-Requirements).
+- [ ] Verify commercial rights, licenses, and required attributions for all
+  code, fonts, icons, images, demo data, and preview assets; remove or replace
+  anything without appropriate redistribution rights.
+- [ ] Decide whether to offer marketplace item support. If an Envato Market
+  item is marked supported, the author commits to at least six months of
+  support; review Envato's
+  [support guidance](https://help.author.envato.com/hc/en-us/articles/360000471703-Item-Support-Best-Practices)
+  and define a realistic support channel and response time before opting in.
+- [ ] Review the selected platform's current author terms, item rules, review
+  requirements, and applicable buyer license terms before submission. For
+  Envato, review its [author terms](https://help.author.envato.com/hc/en-us/articles/41371538488473-Envato-Market-Author-Terms)
+  and [review guidance](https://help.author.envato.com/hc/en-us/articles/360000471923-How-to-Get-Your-Items-Through-Review-at-Envato).
 
 ## Release gate
 

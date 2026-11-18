@@ -2,6 +2,7 @@
 // (Interactive Sector Matrix Grid)
 // ==========================================================================
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight, BookOpen, MessageSquare, Terminal } from "lucide-react";
 import PostLikeButton from "@/components/PostLikeButton";
 import { getPublishedPostsPage, type BlogPost } from "@/utils/blogService";
@@ -36,7 +37,6 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   let errorMessage = "";
   let currentPage = 1;
   let totalPages = 0;
-  let totalPosts = 0;
   let currentUserId: string | null = null;
 
   try {
@@ -44,7 +44,6 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     posts = result.posts;
     currentPage = result.currentPage;
     totalPages = result.totalPages;
-    totalPosts = result.total;
     currentUserId = result.currentUserId;
   } catch (error) {
     errorMessage = error instanceof Error ? error.message : "Unable to load engineering publications.";
@@ -103,7 +102,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                   <div>
                     {post.cover_image_url && (
                       <div className="-mx-6 -mt-6 mb-5 overflow-hidden rounded-t-2xl">
-                        <img src={post.cover_image_url} alt="" className="block aspect-video w-full object-cover" />
+                        <Image src={post.cover_image_url} alt="" width={1200} height={675} unoptimized className="block aspect-video w-full object-cover" />
                       </div>
                     )}
                     <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-accent">

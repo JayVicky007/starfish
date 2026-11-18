@@ -45,6 +45,24 @@ export type BlogComment = {
   liked_by_me: boolean;
 };
 
+type PostCommentCount = { count: number | string | null };
+type PostWithCommentCounts = Omit<BlogPost, "comment_count" | "like_count" | "liked_by_me" | "author"> & {
+  author: BlogPost["author"] | NonNullable<BlogPost["author"]>[];
+  comments: PostCommentCount[] | PostCommentCount | null;
+};
+type CommentRow = Pick<BlogComment, "id" | "post_id" | "author_id" | "parent_id" | "body" | "created_at" | "updated_at">;
+type CommentLikeSummaryRow = {
+  comment_id: string;
+  like_count: number | string;
+  liked_by_me: boolean;
+};
+type CommentProfileRow = {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+};
+
 export type CommentReport = {
   id: string;
   comment_id: string | null;
@@ -138,13 +156,10 @@ export async function getPublishedPostsPage(page: number, pageSize: number, topi
   }>;
   const likesByPostId = new Map(likeRows.map((like) => [like.post_id, like] as const));
 
-  const formattedPosts: BlogPost[] = (data ?? []).map((post: any) => {
-    const rawComments = post.comments;
-    const commentCount = Array.isArray(rawComments) && rawComments[0] 
-      ? Number(rawComments[0].count ?? 0) 
-      : typeof rawComments === 'object' && rawComments !== null && 'count' in rawComments
-        ? Number((rawComments as any).count ?? 0)
-        : 0;
+  const postRows = (data ?? []) as PostWithCommentCounts[];
+  const formattedPosts: BlogPost[] = postRows.map((post) => {
+    const commentCount = getCommentCount(post.comments);
+    const author = Array.isArray(post.author) ? post.author[0] ?? null : post.author;
 
     const likeData = likesByPostId.get(post.id);
 
@@ -165,10 +180,10 @@ export async function getPublishedPostsPage(page: number, pageSize: number, topi
       comment_count: commentCount,
       like_count: likeData ? Number(likeData.like_count) : 0,
       liked_by_me: likeData ? Boolean(likeData.liked_by_me) : false,
-      author: post.author ? {
-        username: post.author.username ?? null,
-        display_name: post.author.display_name ?? null,
-        avatar_url: post.author.avatar_url ?? null,
+      author: author ? {
+        username: author.username ?? null,
+        display_name: author.display_name ?? null,
+        avatar_url: author.avatar_url ?? null,
       } : null,
     };
   });
@@ -180,6 +195,11 @@ export async function getPublishedPostsPage(page: number, pageSize: number, topi
     total,
     currentUserId: user?.id ?? null,
   };
+}
+
+function getCommentCount(comments: PostWithCommentCounts["comments"]) {
+  const count = Array.isArray(comments) ? comments[0]?.count : comments?.count;
+  return Number(count ?? 0);
 }
 
 export async function getPostLikeSummary(postId: string) {
@@ -203,7 +223,12 @@ export async function getPublishedPostsByAuthor(authorId: string): Promise<BlogP
     .order("is_pinned", { ascending: false })
     .order("published_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []).map((post: any) => ({ ...post, comment_count: post.comments?.[0]?.count ?? 0 })) as unknown as BlogPost[];
+  const posts = (data ?? []) as PostWithCommentCounts[];
+  return posts.map(({ author, comments, ...post }): BlogPost => ({
+    ...post,
+    author: Array.isArray(author) ? author[0] ?? null : author,
+    comment_count: getCommentCount(comments),
+  }));
 }
 
 export async function getPublicProfile(username: string): Promise<PublicProfile | null> {
@@ -228,25 +253,29 @@ export async function getPublishedPostComments(postId: string, currentUserId: st
   const supabase = await createClient();
   const { data: comments, error } = await supabase.from("comments").select("id, post_id, author_id, parent_id, body, created_at, updated_at").eq("post_id", postId).eq("is_removed", false).order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
-  if (!comments?.length) return [];
-  const { data: likes, error: likesError } = await supabase.rpc("get_comment_like_summary", { p_comment_ids: comments.map((c: any) => c.id) });
+  const commentRows = (comments ?? []) as CommentRow[];
+  if (!commentRows.length) return [];
+  const { data: likes, error: likesError } = await supabase.rpc("get_comment_like_summary", { p_comment_ids: commentRows.map((comment) => comment.id) });
   if (likesError) throw new Error(likesError.message);
-  const likesByCommentId = new Map(((likes ?? []) as any[]).map((l) => [l.comment_id, l] as const));
-  const authorIds = [...new Set(comments.map((c: any) => c.author_id))];
-  const usernames = [...new Set(comments.flatMap((c: any) => [...c.body.matchAll(/(^|[^a-zA-Z0-9_-])@([a-z0-9_-]{3,30})(?=\$|[^a-z0-9_-])/gi)].map((m) => m[2].toLowerCase())))];
+  const likeRows = (likes ?? []) as CommentLikeSummaryRow[];
+  const likesByCommentId = new Map(likeRows.map((like) => [like.comment_id, like] as const));
+  const authorIds = [...new Set(commentRows.map((comment) => comment.author_id))];
+  const usernames = [...new Set(commentRows.flatMap((comment) => [...comment.body.matchAll(/(^|[^a-zA-Z0-9_-])@([a-z0-9_-]{3,30})(?=\$|[^a-z0-9_-])/gi)].map((match) => match[2].toLowerCase())))];
   const { data: profiles, error: pErr } = await supabase.from("profiles").select("id, username, display_name, avatar_url").in("id", authorIds);
   if (pErr) throw new Error(pErr.message);
   const mQuery = usernames.length ? await supabase.from("profiles").select("username").in("username", usernames) : { data: [], error: null };
   if (mQuery.error) throw new Error(mQuery.error.message);
-  const knownUsernames = new Set((mQuery.data ?? []).map((p: any) => p.username?.toLowerCase()));
-  const profilesById = new Map((profiles ?? []).map((p: any) => [p.id, p]));
-  return comments.map((c: any) => ({
-    ...c,
-    author: profilesById.get(c.author_id) ?? null,
-    like_count: Number(likesByCommentId.get(c.id)?.like_count ?? 0),
-    liked_by_me: currentUserId ? Boolean(likesByCommentId.get(c.id)?.liked_by_me) : false,
-    mention_usernames: [...new Set([...c.body.matchAll(/(^|[^a-zA-Z0-9_-])@([a-z0-9_-]{3,30})(?=\$|[^a-z0-9_-])/gi)].map((m) => m[2].toLowerCase()).filter((u) => knownUsernames.has(u)))]
-  })) as BlogComment[];
+  const matchedProfiles = (mQuery.data ?? []) as Array<{ username: string | null }>;
+  const knownUsernames = new Set(matchedProfiles.map((profile) => profile.username?.toLowerCase()));
+  const profileRows = (profiles ?? []) as CommentProfileRow[];
+  const profilesById = new Map(profileRows.map((profile) => [profile.id, profile] as const));
+  return commentRows.map((comment): BlogComment => ({
+    ...comment,
+    author: profilesById.get(comment.author_id) ?? null,
+    like_count: Number(likesByCommentId.get(comment.id)?.like_count ?? 0),
+    liked_by_me: currentUserId ? Boolean(likesByCommentId.get(comment.id)?.liked_by_me) : false,
+    mention_usernames: [...new Set([...comment.body.matchAll(/(^|[^a-zA-Z0-9_-])@([a-z0-9_-]{3,30})(?=\$|[^a-z0-9_-])/gi)].map((match) => match[2].toLowerCase()).filter((username) => knownUsernames.has(username)))]
+  }));
 }
 
 export async function getOpenCommentReports(): Promise<CommentReport[]> {

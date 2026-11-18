@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
 import { Heart, MessageCircle } from "lucide-react";
@@ -285,7 +286,7 @@ export default function BlogComments({
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex min-w-0 items-center gap-3">
                     {comment.author?.avatar_url ? (
-                      <img src={comment.author.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                      <Image src={comment.author.avatar_url} alt="" width={36} height={36} unoptimized className="h-9 w-9 shrink-0 rounded-full object-cover" />
                     ) : (
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-background text-sm font-bold">
                         {authorName.charAt(0).toUpperCase()}
@@ -441,7 +442,7 @@ export default function BlogComments({
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex min-w-0 items-center gap-2.5">
                               {reply.author?.avatar_url ? (
-                                <img src={reply.author.avatar_url} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                                <Image src={reply.author.avatar_url} alt="" width={32} height={32} unoptimized className="h-8 w-8 shrink-0 rounded-full object-cover" />
                               ) : (
                                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-xs font-bold">{replyAuthorName.charAt(0).toUpperCase()}</span>
                               )}

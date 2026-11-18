@@ -1,6 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
-import { BookOpen, Calendar, User, Heart, MessageSquare } from "lucide-react";
+import { BookOpen, Calendar } from "lucide-react";
 import { getPostLikeSummary, getPublishedPost, getPublishedPostComments } from "@/utils/blogService";
 import { sanitizePostHtml } from "@/utils/sanitizePostHtml";
 import { createClient } from "@/utils/supabase/server";
@@ -23,6 +24,13 @@ const topicLabels: Record<string, string> = {
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
+
+type ViewerProfile = {
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  role: string;
+};
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
@@ -47,7 +55,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     getPostLikeSummary(post.id),
   ]);
 
-  let profile: any = null;
+  let profile: ViewerProfile | null = null;
   if (user) {
     const { data, error } = await supabase
       .from("profiles")
@@ -90,7 +98,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           {post.author?.username ? (
             <Link href={`/users/${post.author.username}`} className="flex items-center gap-3 hover:text-accent transition-colors group">
               {post.author.avatar_url ? (
-                <img src={post.author.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover border border-text-muted/10" />
+                <Image src={post.author.avatar_url} alt="" width={40} height={40} unoptimized className="h-10 w-10 rounded-full object-cover border border-text-muted/10" />
               ) : (
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface border border-text-muted/10 font-bold text-foreground text-xs">
                   {authorName[0].toUpperCase()}
@@ -104,7 +112,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           ) : (
             <div className="flex items-center gap-3">
               {post.author?.avatar_url ? (
-                <img src={post.author.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
+                <Image src={post.author.avatar_url} alt="" width={40} height={40} unoptimized className="h-10 w-10 rounded-full object-cover" />
               ) : (
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface font-bold text-xs">
                   {authorName[0].toUpperCase()}

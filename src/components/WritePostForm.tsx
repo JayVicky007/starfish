@@ -13,7 +13,7 @@ import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import CodeBlock from "@tiptap/extension-code-block";
-import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Quote, Code, Image as ImageIcon, Save, Layers, Sparkles, FileText, CheckCircle2 } from "lucide-react";
+import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Quote, Code, Save, Layers, CheckCircle2 } from "lucide-react";
 
 interface PostData {
   id: string;
