@@ -94,6 +94,25 @@ and test them against their own requirements before launch.
 
    Open [http://localhost:3000](http://localhost:3000).
 
+## Optional Supabase Free inactivity keepalive
+
+The Vercel production deployment includes a daily cron that makes one
+read-only request for a published post through Supabase's public API. The query
+uses the public key and existing row-level security policy; it does not use the
+service-role key. The endpoint requires a `CRON_SECRET`, which Vercel sends in
+the `Authorization` header when invoking the cron.
+
+Before deploying, add a strong, random `CRON_SECRET` value to the Vercel
+project's **Production** environment variables. Vercel cron jobs run only for
+production deployments. Vercel Hobby allows at most one cron invocation per
+day, with up to 59 minutes of timing variation. See Vercel's
+[cron usage and pricing](https://vercel.com/docs/schedules/cron-jobs/usage-and-pricing).
+
+This may provide enough activity to avoid Supabase Free's inactivity pause, but
+does not guarantee availability; Supabase may still pause Free projects with
+low activity. Upgrade to Pro if uninterrupted availability is required. See
+Supabase's [production availability guidance](https://supabase.com/docs/guides/deployment/going-into-prod#free-plan-restrictions).
+
 ## Checks
 
 ```bash
